@@ -1,0 +1,6 @@
+Conda environment-names:
+videollava
+pandagpt
+videochatgpt
+
+PandaGPT used Vicuna-13B (version 0) with maximum sequence length of 400
