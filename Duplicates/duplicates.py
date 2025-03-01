@@ -4,6 +4,16 @@ import hashlib
 import json
 from collections import defaultdict
 
+"""
+This file looks through all the files and compares the first non black frame of all the videos. 
+After the scan all the data will be put in three different json files:
+1. video_hashes.json is for all the hash values for of the fist non black frame (Can be used for further computations)
+2. duplicates_ids saves all the unique video ids for easy access
+3. original_to_duplicates has all the same videos stored by id in groups
+
+To make sure that the whole video is the same we use the file dup-verification.py => More than the first analyzed frame is the same
+"""
+
 # Path to dataset folder
 DATASET_PATH = "/ceph/lprasse/ClimateVisions/Videos"
 
