@@ -78,7 +78,7 @@ def getLastFrame(video):
     # Only black frames found
     return frame
 
-# Init. json file
+# Init csv file
 def init_video_hash_values_csv():
    header = ["id", "hash1", "hash2"]
 
