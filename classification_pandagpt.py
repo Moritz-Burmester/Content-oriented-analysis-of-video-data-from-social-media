@@ -21,7 +21,7 @@ def init_pandagpt():
 
     max_length = 128
     top_p = 0.01
-    temperature = 1.0
+    temperature = 0.7
 
 
     return model, max_length, top_p, temperature
