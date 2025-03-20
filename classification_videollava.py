@@ -5,9 +5,7 @@ from Video_LLaVA.videollava.model.builder import load_pretrained_model
 from Video_LLaVA.videollava.utils import disable_torch_init
 from Video_LLaVA.videollava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 
-#TODO: Seperate to classify and init_model for efficient computing
-
-def init_videolloava():
+def init_videollava():
     disable_torch_init()
     model_path = 'LanguageBind/Video-LLaVA-7B'
     cache_dir = 'cache_dir'
@@ -19,7 +17,7 @@ def init_videolloava():
 
     return video_processor, tokenizer, model
 
-def classify_videollava(sel_video, sel_prompt, video_processor, tokenizer, model):
+def classify_videollava(sel_video, sel_prompt, model, video_processor, tokenizer):
     video = sel_video
     inp = sel_prompt
     conv_mode = "llava_v1"
