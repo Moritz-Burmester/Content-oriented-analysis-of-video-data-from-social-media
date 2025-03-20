@@ -4,3 +4,9 @@ pandagpt
 videochatgpt
 
 PandaGPT used Vicuna-13B (version 0) with maximum sequence length of 400
+
+#TODO:
+videochatgpt still opens gradio web server log
+main.py wihtout commeting the notused imports
+last frame by frame model --> IF not already implemented with other model_utils
+Commenting Code
