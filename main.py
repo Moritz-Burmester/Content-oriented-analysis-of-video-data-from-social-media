@@ -4,7 +4,10 @@ import sys
 import os
 import pandas as pd
 
-from classification_videollava import classify_videollava, init_videolloava
+#TODO: How to have all imports active at the same time and not throw erros with different environments
+#from classification_videollava import init_videoll aava, classify_videollava
+#from classification_pandagpt import init_pandagpt, classify_pandagpt
+from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
 
 """
 For accessing the different models
@@ -27,11 +30,11 @@ def main():
   print("Selected: " + env_name)
 
   if env_name == "videollava":
-    video_processor, tokenizer, model = init_videolloava()
+    video_processor, tokenizer, model = init_videollava()
   elif env_name == "pandagpt":
-    print()
+    model, max_length, top_p, temperature = init_pandagpt()
   elif env_name == "videochatgpt":
-    print()
+    model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens = init_videochatgpt()
   else:
     print("Error: Cannot find the selected model")
     sys.exit(1)
@@ -50,15 +53,17 @@ def main():
     
     #TODO: Frame by Frame model
     if env_name == "videollava":
-      result = classify_videollava(video, prompt, video_processor, tokenizer, model)
+      result = classify_videollava(video, prompt, model , video_processor, tokenizer)
       print(result)
     elif env_name == "pandagpt":
-       print()
+      result = classify_pandagpt(video, prompt, model, max_length, top_p, temperature)
+      print(result)
     elif env_name == "videochatgpt":
-       print()
+      result = classify_videochatgpt(video, prompt, model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens)
+      print(result)
     else:
-       print("Error: Cannot find the selected model")
-       break
+      print("Error: Cannot find the selected model")
+      break
        
     with open(solution_path, mode="a", newline="") as solution:
       writer = csv.writer(solution)
