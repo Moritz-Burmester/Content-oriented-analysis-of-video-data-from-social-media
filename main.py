@@ -4,7 +4,7 @@ import sys
 import os
 import pandas as pd
 
-from classification_videollava import classify_videollava
+from classification_videollava import classify_videollava, init_videolloava
 
 """
 For accessing the different models
@@ -18,19 +18,31 @@ env_name = os.environ.get("CONDA_DEFAULT_ENV")
 solution_path = os.path.join("/work/mburmest/bachelorarbeit", env_name + "_solution.csv")
 
 # Before starting the program select a Prompt
-prompt = "Is this video funny? Answer with yes or no."
+prompt = "What is the main color in the video?"
 
 # Before starting the program select a conda environment
 def main():
   set_duplicates = load_csv_into_set(duplicates)
   videos = glob.glob(f"{dataset_path}/*/*/*.mp4")
   print("Selected: " + env_name)
+
+  if env_name == "videollava":
+    video_processor, tokenizer, model = init_videolloava()
+  elif env_name == "pandagpt":
+    print()
+  elif env_name == "videochatgpt":
+    print()
+  else:
+    print("Error: Cannot find the selected model")
+    sys.exit(1)
+
   
   for video in videos:
     id_string = video.split("/")[-1].split(".")[0]
-    result = None
+
     if checkDuplicate(id_string,set_duplicates):
-       continue
+      print("\nDuplicate eliminated\n")
+      continue
     
     if not os.path.exists(solution_path):
       df = pd.DataFrame(columns=["id", "solution"])
@@ -38,7 +50,7 @@ def main():
     
     #TODO: Frame by Frame model
     if env_name == "videollava":
-      result = classify_videollava("/work/mburmest/bachelorarbeit/test.mp4", prompt)
+      result = classify_videollava(video, prompt, video_processor, tokenizer, model)
       print(result)
     elif env_name == "pandagpt":
        print()
