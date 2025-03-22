@@ -2,12 +2,9 @@ import csv
 import glob
 import sys
 import os
+import traceback
 import pandas as pd
-
-#TODO: How to have all imports active at the same time and not throw erros with different environments
-#from classification_videollava import init_videoll aava, classify_videollava
-#from classification_pandagpt import init_pandagpt, classify_pandagpt
-from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
+import torch
 
 """
 For accessing the different models
@@ -16,59 +13,33 @@ Use the corresponding conda environment for the specific model
 """
 
 dataset_path = "/ceph/lprasse/ClimateVisions/Videos"
-duplicates = "/work/mburmest/bachelorarbeit/Duplicates/duplicates.csv"
+duplicates = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
 env_name = os.environ.get("CONDA_DEFAULT_ENV")
-solution_path = os.path.join("/work/mburmest/bachelorarbeit", env_name + "_solution.csv")
+solution_path = os.path.join("/work/mburmest/bachelorarbeit/", env_name + "_solution.csv")
+exception_path = os.path.join("work/mburmest/bachelorarbeit/", env_name + "_exception.csv")
 
 # Before starting the program select a Prompt
 prompt = "What is the main color in the video?"
 
 # Before starting the program select a conda environment
 def main():
-  set_duplicates = load_csv_into_set(duplicates)
-  videos = glob.glob(f"{dataset_path}/*/*/*.mp4")
   print("Selected: " + env_name)
 
   if env_name == "videollava":
-    video_processor, tokenizer, model = init_videollava()
+    from classification_videollava import init_videollava, classify_videollava
+    model, video_processor, tokenizer = init_videollava()
+    classify_model(classify_videollava, model, video_processor, tokenizer)
   elif env_name == "pandagpt":
+    from classification_pandagpt import init_pandagpt, classify_pandagpt
     model, max_length, top_p, temperature = init_pandagpt()
+    classify_model(classify_pandagpt, model, max_length, top_p, temperature)
   elif env_name == "videochatgpt":
+    from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
     model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens = init_videochatgpt()
+    classify_model(classify_videochatgpt, model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens)
   else:
     print("Error: Cannot find the selected model")
     sys.exit(1)
-
-  
-  for video in videos:
-    id_string = video.split("/")[-1].split(".")[0]
-
-    if checkDuplicate(id_string,set_duplicates):
-      print("\nDuplicate eliminated\n")
-      continue
-    
-    if not os.path.exists(solution_path):
-      df = pd.DataFrame(columns=["id", "solution"])
-      df.to_csv(solution_path, index=False)
-    
-    #TODO: Frame by Frame model
-    if env_name == "videollava":
-      result = classify_videollava(video, prompt, model , video_processor, tokenizer)
-      print(result)
-    elif env_name == "pandagpt":
-      result = classify_pandagpt(video, prompt, model, max_length, top_p, temperature)
-      print(result)
-    elif env_name == "videochatgpt":
-      result = classify_videochatgpt(video, prompt, model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens)
-      print(result)
-    else:
-      print("Error: Cannot find the selected model")
-      break
-       
-    with open(solution_path, mode="a", newline="") as solution:
-      writer = csv.writer(solution)
-      writer.writerow([id_string, result])
-
   
   #Sort df
   df = pd.read_csv(solution_path)
@@ -85,6 +56,49 @@ def load_csv_into_set(file_path: str) -> set:
     except:
         print("Error in load_csv_into_set()")
         sys.exit(1)
+
+
+def classify_model(classify, *args):
+  set_duplicates = load_csv_into_set(duplicates)
+  videos = glob.glob(f"{dataset_path}/*/*/*.mp4")
+
+
+  if not os.path.exists(solution_path):
+    df = pd.DataFrame(columns=["id", "solution"])
+    df.to_csv(solution_path, index=False)
+
+  for video in videos:
+    id_string = video.split("/")[-1].split(".")[0]
+    print("Video: " + id_string)
+
+    if checkDuplicate(id_string,set_duplicates):
+      print("Duplicate eliminated\n")
+      continue
+
+    try:
+      result = classify("/ceph/lprasse/ClimateVisions/Videos/2021/11_November/id_1459779483796389892_2021-11-14.mp4", prompt, args)
+    except Exception as e:
+
+      if not os.path.exists(exception_path):
+        df = pd.DataFrame(columns=["id", "exception", "Stacktrace"])
+        df.to_csv(exception_path, index=False)
+
+      with open(exception_path, mode="a", newline="") as exception:
+        writer = csv.writer(exception)
+        writer.writerow([id_string, str(e), traceback.format_exc()])
+
+
+      torch.cuda.empty_cache()
+      continue
+  
+    
+    torch.cuda.empty_cache()
+
+    print(result)
+
+    with open(solution_path, mode="a", newline="") as solution:
+      writer = csv.writer(solution)
+      writer.writerow([id_string, result])
 
 # Check if the video is in the duplicate file
 # @param video_id: "id_x...x_YYYY-MM-DD"

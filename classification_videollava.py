@@ -15,13 +15,16 @@ def init_videollava():
     tokenizer, model, processor, _ = load_pretrained_model(model_path, None, model_name, load_8bit, load_4bit, device=device, cache_dir=cache_dir)
     video_processor = processor['video']
 
-    return video_processor, tokenizer, model
+    return model, video_processor, tokenizer
 
-def classify_videollava(sel_video, sel_prompt, model, video_processor, tokenizer):
+def classify_videollava(sel_video, sel_prompt, args):
     video = sel_video
     inp = sel_prompt
     conv_mode = "llava_v1"
     conv = conv_templates[conv_mode].copy()
+    model = args[0]
+    video_processor = args[1]
+    tokenizer = args[2]
 
     video_tensor = video_processor(video, return_tensors='pt')['pixel_values']
     if type(video_tensor) is list:
@@ -49,7 +52,5 @@ def classify_videollava(sel_video, sel_prompt, model, video_processor, tokenizer
             stopping_criteria=[stopping_criteria])
 
     outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
-
-    torch.cuda.empty_cache()
 
     return outputs

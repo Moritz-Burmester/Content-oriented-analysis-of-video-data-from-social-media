@@ -10,3 +10,6 @@ videochatgpt still opens gradio web server log
 main.py wihtout commeting the notused imports
 last frame by frame model --> IF not already implemented with other model_utils
 Commenting Code
+
+
+What if a model throws an error with a usually valid video? Is this my problem?
