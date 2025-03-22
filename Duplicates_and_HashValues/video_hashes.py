@@ -9,7 +9,7 @@ This code caculates the hash-values of the first and last non-black frame of a v
 """
 
 dataset_path = "/ceph/lprasse/ClimateVisions/Videos"
-video_hash_values_db = "/home/mburmest/bachelorarbeit/Duplicates/video_hash_values.csv"
+video_hash_values_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/video_hash_values.csv"
 
 # Gets all the video files (mp4) in the structure path/year/month/id.mp4
 files = glob.glob(f"{dataset_path}/*/*/*.mp4")

@@ -6,9 +6,9 @@ The one file contains only the duplicatse and the other the original and the dup
 Requirement: Csv File with id,hash1,hash2
 """
 
-video_hash_values_db = "/home/mburmest/bachelorarbeit/Duplicates/video_hash_values.csv"
-duplicates_db = "/home/mburmest/bachelorarbeit/Duplicates/duplicates.csv"
-duplicates_to_originals_db = "/home/mburmest/bachelorarbeit/Duplicates/duplicates_to_originals.csv"
+video_hash_values_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/video_hash_values.csv"
+duplicates_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
+duplicates_to_originals_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates_to_originals.csv"
 
 df = pd.read_csv(video_hash_values_db)
 
