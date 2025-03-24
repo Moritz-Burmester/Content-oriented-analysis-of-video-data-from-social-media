@@ -1,111 +1,131 @@
-import csv
 import glob
 import sys
 import os
 import traceback
 import pandas as pd
 import torch
+import time
+from datetime import timedelta
 
 """
-For accessing the different models
-
-Use the corresponding conda environment for the specific model
+This file is for starting and using the models. First select a conda environment and update the paths accordingly.
+Then choose a prompt. 
+Each model will analyze each file indepent to each other. 
+After this the file can be used and depending on your chosen environment
 """
 
+# File paths
 dataset_path = "/ceph/lprasse/ClimateVisions/Videos"
 duplicates = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
 env_name = os.environ.get("CONDA_DEFAULT_ENV")
 solution_path = os.path.join("/work/mburmest/bachelorarbeit/", env_name + "_solution.csv")
-exception_path = os.path.join("work/mburmest/bachelorarbeit/", env_name + "_exception.csv")
+exception_path = os.path.join("/work/mburmest/bachelorarbeit/", env_name + "_exception.csv")
 
-# Before starting the program select a Prompt
+# Prompt
 prompt = "What is the main color in the video?"
 
-# Before starting the program select a conda environment
 def main():
-  print("Selected: " + env_name)
+    print(f"Selected: {env_name}" + "\n")
 
-  if env_name == "videollava":
-    from classification_videollava import init_videollava, classify_videollava
-    model, video_processor, tokenizer = init_videollava()
-    classify_model(classify_videollava, model, video_processor, tokenizer)
-  elif env_name == "pandagpt":
-    from classification_pandagpt import init_pandagpt, classify_pandagpt
-    model, max_length, top_p, temperature = init_pandagpt()
-    classify_model(classify_pandagpt, model, max_length, top_p, temperature)
-  elif env_name == "videochatgpt":
-    from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
-    model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens = init_videochatgpt()
-    classify_model(classify_videochatgpt, model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens)
-  else:
-    print("Error: Cannot find the selected model")
-    sys.exit(1)
-  
-  #Sort df
-  df = pd.read_csv(solution_path)
-  df["date"] = pd.to_datetime(df["id"].str.split("_").str[-1])
-  df = df.sort_values(by="date")
-  df.drop(columns=["date"]).to_csv(solution_path, index = False) 
-
-# Load Duplicate file into a set for fast lookups
-def load_csv_into_set(file_path: str) -> set:
-    try:
-        with open(file_path, mode='r', encoding='utf-8') as file:
-            reader = csv.reader(file)
-            return {cell for row in reader for cell in row}  # Flattening rows into a set
-    except:
-        print("Error in load_csv_into_set()")
+    # Select model based on environment
+    model, *model_params = select_model(env_name)
+    if not model:
+        print("Error: Cannot find the selected model")
         sys.exit(1)
 
+    classify_model(model, *model_params)
 
+    # Sort the dataframe
+    if os.path.exists(solution_path):
+        df = pd.read_csv(solution_path)
+        df["date"] = pd.to_datetime(df["id"].str.split("_").str[-1])
+        df["numeric_id"] = df["id"].str.split("_").str[1].astype(int)
+        df = df.sort_values(by=["date", "numeric_id"])
+        df.drop(columns=["date", "numeric_id"]).to_csv(solution_path, index=False)
+
+"""Imports the needed functions for the model. Initializes the model and returns the classification method and init params"""
+def select_model(env_name):
+    if env_name == "videollava":
+        from classification_videollava import init_videollava, classify_videollava
+        return (classify_videollava, *init_videollava())
+    elif env_name == "pandagpt":
+        from classification_pandagpt import init_pandagpt, classify_pandagpt
+        return (classify_pandagpt, *init_pandagpt())
+    elif env_name == "videochatgpt":
+        from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
+        return (classify_videochatgpt, *init_videochatgpt())
+    return None
+
+"""Classifies with the given classification method given by selectModel() and saves the result. Also it checks if a file has already been processed"""
 def classify_model(classify, *args):
-  set_duplicates = load_csv_into_set(duplicates)
-  videos = glob.glob(f"{dataset_path}/*/*/*.mp4")
+    
+    set_processed = set()
+    if os.path.exists(duplicates):
+        set_processed.update(load_csv_into_set(duplicates, "id"))
+    if os.path.exists(solution_path):
+        set_processed.update(load_csv_into_set(solution_path, "id"))
+    if os.path.exists(exception_path):
+        set_processed.update(load_csv_into_set(exception_path, "id"))
+
+    videos = glob.glob(f"{dataset_path}/2019/01_January/*.mp4")
+
+    start_time = time.time()
+    processed_count = 0
+    total_files = len(videos)
+
+    for video in videos:
+        id_string = video.split("/")[-1].split(".")[0]
+        processed_count += 1
+
+        if id_string in set_processed:
+            continue
+
+        try:
+            result = classify(video, prompt, *args)
+            write_to_csv(solution_path, ["id", "solution"], [id_string, result])
+        except Exception as e:
+            write_to_csv(solution_path, ["id", "solution"], [id_string, ""])
+            write_to_csv(exception_path, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
+            torch.cuda.empty_cache()
+            continue
+
+        torch.cuda.empty_cache()
+    
+        if processed_count % 25 == 0 or processed_count == total_files:
+            print_progress_status(processed_count, total_files, start_time)
+
+"""Appends a single row to a CSV file."""
+def write_to_csv(file_path, columns, data):    
+    file_exists = os.path.exists(file_path)
+    df = pd.DataFrame([data], columns=columns)
+    df.to_csv(file_path, mode="a", index=False, header=not file_exists)
 
 
-  if not os.path.exists(solution_path):
-    df = pd.DataFrame(columns=["id", "solution"])
-    df.to_csv(solution_path, index=False)
-
-  for video in videos:
-    id_string = video.split("/")[-1].split(".")[0]
-    print("Video: " + id_string)
-
-    if checkDuplicate(id_string,set_duplicates):
-      print("Duplicate eliminated\n")
-      continue
-
+"""Loads a specified column from a CSV into a set for fast lookups."""
+def load_csv_into_set(file_path: str, col_name: str) -> set:
     try:
-      result = classify("/ceph/lprasse/ClimateVisions/Videos/2021/11_November/id_1459779483796389892_2021-11-14.mp4", prompt, args)
+        return set(pd.read_csv(file_path, usecols=[col_name], dtype=str)[col_name].dropna())
     except Exception as e:
+        print(f"Error in load_csv_into_set(): {e}")
+        sys.exit(1)
 
-      if not os.path.exists(exception_path):
-        df = pd.DataFrame(columns=["id", "exception", "Stacktrace"])
-        df.to_csv(exception_path, index=False)
-
-      with open(exception_path, mode="a", newline="") as exception:
-        writer = csv.writer(exception)
-        writer.writerow([id_string, str(e), traceback.format_exc()])
-
-
-      torch.cuda.empty_cache()
-      continue
-  
+"""To measure the progress and to give rough estimates about the needed time"""
+def print_progress_status(processed_count, total_files, start_time):
+    elapsed_time = time.time() - start_time
+    elapsed_str = str(timedelta(seconds=int(elapsed_time)))
     
-    torch.cuda.empty_cache()
+    if processed_count > 0:
+        time_per_file = elapsed_time / processed_count
+        remaining_files = total_files - processed_count
+        remaining_time = time_per_file * remaining_files
+        remaining_str = str(timedelta(seconds=int(remaining_time)))
+        total_estimate_str = str(timedelta(seconds=int(elapsed_time + remaining_time)))
+        
+        print(f"Processed {processed_count}/{total_files} files "
+              f"({processed_count/total_files:.1%}) | "
+              f"Elapsed: {elapsed_str} | "
+              f"Remaining: {remaining_str} | "
+              f"Total estimate: {total_estimate_str}")
 
-    print(result)
-
-    with open(solution_path, mode="a", newline="") as solution:
-      writer = csv.writer(solution)
-      writer.writerow([id_string, result])
-
-# Check if the video is in the duplicate file
-# @param video_id: "id_x...x_YYYY-MM-DD"
-# @param dup_set: Set with all duplicate ids created by load_csv_into_set()
-# @return: Returns true if duplicate is present, returns false in every other case
-def checkDuplicate(video_id : str, dup_set : set) -> bool:
-    return video_id in dup_set
-    
 if __name__ == "__main__": 
-  main()
+    main()
