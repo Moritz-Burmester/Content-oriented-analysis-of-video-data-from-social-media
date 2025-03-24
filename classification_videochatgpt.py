@@ -17,7 +17,7 @@ def init_videochatgpt():
     model, vision_tower, tokenizer, image_processor, video_token_len = initialize_model(model_name, projection_path)
     return model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens
 
-def classify_videochatgpt(sel_video, sel_prompt, args):
+def classify_videochatgpt(sel_video, sel_prompt, *args):
     model = args[0]
     model_name = args[1]
     vision_tower = args[2] 

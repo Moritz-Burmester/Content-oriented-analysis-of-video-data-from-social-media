@@ -26,7 +26,7 @@ def init_pandagpt():
 
     return model, max_length, top_p, temperature
 
-def classify_pandagpt(sel_video, sel_prompt, args):
+def classify_pandagpt(sel_video, sel_prompt, *args):
     model = args[0]
     max_length = args[1]
     top_p = args[2] 

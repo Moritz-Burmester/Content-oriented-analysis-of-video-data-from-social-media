@@ -17,7 +17,7 @@ def init_videollava():
 
     return model, video_processor, tokenizer
 
-def classify_videollava(sel_video, sel_prompt, args):
+def classify_videollava(sel_video, sel_prompt, *args):
     video = sel_video
     inp = sel_prompt
     conv_mode = "llava_v1"
