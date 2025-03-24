@@ -1,6 +1,6 @@
 archive/
 
-__pychace__/
+__pycache__/
 
 *.csv
 
