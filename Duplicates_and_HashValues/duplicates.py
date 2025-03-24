@@ -36,17 +36,18 @@ for _, group in df.groupby(["hash1", "hash2"]):
         #iterate trough the duplicates and stores them
         for _, duplicate in group.iloc[1:].iterrows():
             duplicates_dict.append({
-                'original_id': original_id,
-                'duplicate_id': duplicate['id'],
-                'hash1': hash1,
-                'hash2': hash2
+                "original_id": original_id,
+                "duplicate_id": duplicate["id"],
+                "hash1": hash1,
+                "hash2": hash2
             })
-            all_duplicates.append(duplicate['id'])
+            all_duplicates.append(duplicate["id"])
 
 # Save grouped duplicates in the correct location
 grouped_df = pd.DataFrame(duplicates_dict)
 grouped_df.to_csv(duplicates_to_originals_db, index=False)
 
 # Save all duplicates in a separate list
-duplicates_df = pd.DataFrame({'duplicate_id': all_duplicates})
+duplicates_df = pd.DataFrame({"duplicate_id": all_duplicates})
+duplicates_df = duplicates_df.rename(columns={'duplicate_id': 'id'})
 duplicates_df.to_csv(duplicates_db, index=False)
