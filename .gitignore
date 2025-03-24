@@ -1,3 +1,7 @@
 archive/
 
 __pychace__/
+
+*.csv
+
+!/Duplicates_and_HashValues/
