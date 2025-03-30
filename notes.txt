@@ -13,3 +13,91 @@ Commenting Code
 
 
 What if a model throws an error with a usually valid video? Is this my problem?
+
+
+Prompt_Main
+1: "There are three categories: Animals, Climate Action, Consequences of Climatechange. " + \
+                        "Asign fitting categories to the video. Output only the category, without any other text like this: category1, ... ." + \
+                        "If the video does not fit in any category write: None."
+
+
+2: "Is the video about some sort of Animals, Climate Action or Consequences of Climatechange?
+
+3: There are three categories: Animals, Climate Action, and Consequences of Climate Change. Assign all relevant categories to the video. Output only the category names as a comma-separated list in any order, like this: category1, category2. Always use the same category names exactly as given. If the video does not fit any category, output: None.
+4: "There are three categories: Animals, Climate Action, and Consequences of Climate Change. "
+    "Assign all relevant categories to the video. Output the categories in the following format:\n\n"
+    '"category1: [Category Name]", "category2: [Category Name]", "category3: [Category Name]".\n\n'
+    "Always list them sequentially without skipping numbers. "
+    "If the video does not fit any category, output only: \"None.\" with no additional text."
+
+5:    "There are three categories: Animals, Climate Action, and Consequences of Climate Change. "
+    "Assign all relevant categories to the video. Output only the categories in the exact format below:\n\n"
+    '"category1: [Category Name]"\n'
+    '"category2: [Category Name]"\n'
+    '"category3: [Category Name]"\n\n'
+    "If the video belongs to fewer than three categories, omit the unused category labels.\n"
+    "If the video does not fit any category, output only: \"None.\"\n"
+    "Do not include any extra text, descriptions, explanations, or formatting variations."
+
+6: """
+You are a rigorous video classification system. Follow these steps:
+
+1. **Analyze** the video's primary content.
+2. **Assign ALL applicable main categories** from this exact list:
+   - "Animals" - Wildlife, pets, or animal behavior (no human focus).
+   - "Climate Action" - Direct efforts to address climate change (protests, tech, policies).
+   - "Consequences of Climate Change" - Observed impacts (positive/negative).
+
+3. **Output Rules**:
+   - Return ONLY the category names, comma-separated if multiple (e.g., "Animals, Consequences of Climate Change").
+   - Use EXACTLY these spellings: "Animals", "Climate Action", "Consequences of Climate Change".
+   - If irrelevant to all, return "None".
+   - NO explanations, punctuation outside categories, or deviations.
+
+Example outputs:  
+"Climate Action"  
+"Animals, Consequences of Climate Change"  
+"None"
+"""
+
+7: "You need to classify the given video into three different categories. Follow these steps: " + \
+    "1. Analyze the video's content. " + \
+    "2. Assign only all applicable main categories from this exact list [Animals, Climate-Actions, Consequences-Of-Climatechange]. " + \
+    "3. Output only the assigned and fitting category names (e.g. 'Animals', 'Animals, Consequences-Of-Climate-Change'). " + \
+    "4. If no category fits to the video only output None (e.g. 'None'). " + \
+    "5. Check if your answer follows the given format. At most you the whole answer contains 3 words."
+
+You need to classify the given video into different categories. Follow these steps:
+ "1. Analyze the video's content. " + \
+ "2. 
+Is the video about animals including Pets, Farm Animal, Polar Bear, Land Mammal, Sea Mammal, Fish, Amphibian, Reptile, Invertabrate, Bird, Other?
+
+
+"You need to classify the given video. Follow these steps: " + \
+"1. Analyze the video's content. " + \
+"2. Asign the label animal if the video is about animals like pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates, birds or other animals. " + \
+"3. Only asign the label animal if the video is about animal otherwise asign none. " + \
+"4. Check your output and check if the video is really about animals. " + \
+"5. Check if your answer follows the given format. It is either animal or none. Thus your answer should only contain one word. " + \
+"6. Output your answer."
+
+You need to classify the given video. Follow these steps:
+1. Analyze the video's content.
+2. Asign the label climateaction if the video is about climateactions like like protests, politics, sustainable energy (Wind, Solar, Hydropower, Biogas), fossil energy (Carbon, Natural Gas, Oil, Fossil Fuel).
+3. Only asign the label animal if the video is about animal otherwise asign none.
+4. Check your output and check if the video is really about climateactions.
+5. Check if your answer follows the given format. It is either climateaction or none. Thus your answer should only contain one word.
+6. Output your answer.
+
+You need to classify the given video. Follow these steps:
+1. Analyze the video's content
+2. Asign the label consequences if the video is about climate-consequences like biodeversity loss, covid, health, extrem weather (Drough, Flood, Wildfire), melting ice, sea-level rise, rising temperature, human rights, economic consequenceor other related consequences.
+3. Only asign the label consequences if the video is about animal otherwise asign none.
+4. Check your output and check if the video is really about climate-consequences.
+5. Check if your answer follows the given format. It is either consequences or none. Thus your answer should only contain one word.
+6. Output your answer
+
+"You need to classify the given video. Follow these steps: " + \
+                        "1. Analyze the video's content. " + \
+                        "2. Answer with Yes if the video is about animals like pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates, birds or other animals. " + \
+                        "3. Output your answer.",
