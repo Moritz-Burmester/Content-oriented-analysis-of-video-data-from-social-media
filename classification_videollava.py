@@ -17,9 +17,8 @@ def init_videollava():
 
     return model, video_processor, tokenizer
 
-def classify_videollava(sel_video, sel_prompt, *args):
+def classify_videollava(sel_video, prompts, *args):
     video = sel_video
-    inp = sel_prompt
     conv_mode = "llava_v1"
     conv = conv_templates[conv_mode].copy()
     model = args[0]
@@ -32,25 +31,29 @@ def classify_videollava(sel_video, sel_prompt, *args):
     else:
         tensor = video_tensor.to(model.device, dtype=torch.float16)
 
-    inp = ' '.join([DEFAULT_IMAGE_TOKEN] * model.get_video_tower().config.num_frames) + '\n' + inp
-    conv.append_message(conv.roles[0], inp)
-    conv.append_message(conv.roles[1], None)
-    prompt = conv.get_prompt()
-    input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
-    stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
-    keywords = [stop_str]
-    stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
+    result = None
 
-    with torch.inference_mode():
-        output_ids = model.generate(
-            input_ids,
-            images=tensor,
-            do_sample=True,
-            temperature=0.1,
-            max_new_tokens=1024,
-            use_cache=True,
-            stopping_criteria=[stopping_criteria])
+    for idx, inp in enumerate(prompts, 0):
+        inp = ' '.join([DEFAULT_IMAGE_TOKEN] * model.get_video_tower().config.num_frames) + '\n' + inp
+        conv.append_message(conv.roles[0], inp)
+        conv.append_message(conv.roles[1], None)
+        prompt = conv.get_prompt()
+        input_ids = tokenizer_image_token(prompt, tokenizer, IMAGE_TOKEN_INDEX, return_tensors='pt').unsqueeze(0).cuda()
+        stop_str = conv.sep if conv.sep_style != SeparatorStyle.TWO else conv.sep2
+        keywords = [stop_str]
+        stopping_criteria = KeywordsStoppingCriteria(keywords, tokenizer, input_ids)
 
-    outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
+        with torch.inference_mode():
+            output_ids = model.generate(
+                input_ids,
+                images=tensor,
+                do_sample=True,
+                temperature=0.1,
+                max_new_tokens=1024,
+                use_cache=True,
+                stopping_criteria=[stopping_criteria])
 
-    return outputs
+        outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
+        result[idx] = outputs
+
+    return result

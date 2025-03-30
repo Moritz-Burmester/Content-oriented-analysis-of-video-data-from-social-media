@@ -11,13 +11,13 @@ Needs approximately 18GB of GPU memory
 def init_videochatgpt():
     model_name = "/work/mburmest/bachelorarbeit/Video_ChatGPT/LLaVA-7B-Lightning-v1-1"
     projection_path = "/work/mburmest/bachelorarbeit/Video_ChatGPT/video_chatgpt-7B.bin"
-    temperature =  0.7
+    temperature =  0.1
     max_output_tokens = 128
 
     model, vision_tower, tokenizer, image_processor, video_token_len = initialize_model(model_name, projection_path)
     return model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens
 
-def classify_videochatgpt(sel_video, sel_prompt, *args):
+def classify_videochatgpt(sel_video, prompts, *args):
     model = args[0]
     model_name = args[1]
     vision_tower = args[2] 
@@ -35,13 +35,18 @@ def classify_videochatgpt(sel_video, sel_prompt, *args):
     img_list = []
     chat.upload_video(sel_video, img_list)
 
-    state = default_conversation.copy()
+    result = None
 
-    if "<video>" not in sel_prompt:
-        sel_prompt = sel_prompt + "\n<video>"
-    state.append_message(state.roles[0], (sel_prompt, sel_video))
-    state.append_message(state.roles[1], None)
+    for idx, sel_prompt in enumerate(prompts, 0):
+        state = default_conversation.copy()
 
-    _, response = list(chat.answer(state, img_list, temperature, max_output_tokens, first_run=True))[-1][1][-1]
+        if "<video>" not in sel_prompt:
+            sel_prompt = sel_prompt + "\n<video>"
 
-    return response
+        state.append_message(state.roles[0], (sel_prompt, sel_video))
+        state.append_message(state.roles[1], None)
+        _, response = list(chat.answer(state, img_list, temperature, max_output_tokens, first_run=True))[-1][1][-1]
+
+        result[idx] = response
+
+    return result
