@@ -28,9 +28,6 @@ Each row in the solution file has the corresponding video id with the saved resu
 Since every result gets immediately saved to the solution file, I have build a pick-up system that allows the code to pick up at the last saved result if e.g. the process gets interrupted.
 """
 
-# Global variable for using the right classification method
-classify = None
-
 # File paths
 DATASET_PATH = "/ceph/lprasse/ClimateVisions/Videos"
 DUPLICATES_PATH = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
@@ -79,8 +76,6 @@ PROMPTS = {
                             "Answer as short as possible.",
 }
 
-
-
 def main():
     print(f"Selected environment: {ENV_NAME}\n")
 
@@ -102,6 +97,8 @@ def main():
 # Imports the needed functions for the model. Initializes the model and returns the classification method and init params
 # ENV_NAME: the selected environment. "Automatic" variable
 def select_model(ENV_NAME):
+    global classify
+
     if ENV_NAME == "videollava":
         from classification_videollava import init_videollava, classify_videollava
         classify = classify_videollava
@@ -149,9 +146,9 @@ def classify_model(*args):
             continue
         
         try:
-            # Get results
             results = classify(video, sel_prompts, *args)
-
+            print(results)
+            
             # Format results or try again
             for idx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
                 tries = 0 
@@ -164,28 +161,39 @@ def classify_model(*args):
                     current_result = format_result(solution, prompt)
 
                 results[idx] = current_result
-
+            
+            print(results)
             # Get specific results
             for idx, response in enumerate(results):
                 if response in ["animals" , "climateactions", "consequences"]:  
                     prompt_key = f"{response}_kind"
+                    prompt = PROMPTS[prompt_key]
+                    print("PROMTKEY: " + prompt_key)
                     tries = 0
-                    current_result = classify(video, [PROMPTS[prompt_key]], *args)[0]
+                    solution = classify(video, [prompt], *args)[0]
+                    current_result = format_result(solution, prompt)
         
                     while tries <= 2 and current_result == "Unknown":
                         tries += 1
-                        solution = classify(video, [PROMPTS[prompt_key]], *args)[0]
+                        solution = classify(video, [prompt], *args)[0]
                         current_result = format_result(solution, PROMPTS[prompt_key])
-                        
-                    if current_result is not "Unknown":
+                    
+                    
+                    if current_result != "Unknown":
                         results[idx] = current_result
             
+            print(results)
             write_to_csv(SOLUTION_PATH, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results)
+            print("\n\n")
 
         except Exception as e:
+
+            if not os.path.exists(EXCEPTION_PATH):
+                pd.DataFrame(columns=["id", "exception", "Stacktrace"]).to_csv(EXCEPTION_PATH, index=False)
+
             write_to_csv(EXCEPTION_PATH, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
-        finally:
-            torch.cuda.empty_cache()
+        
+            
         
         # Timer for progress
         if idx % 25 == 0 or idx == total_files:

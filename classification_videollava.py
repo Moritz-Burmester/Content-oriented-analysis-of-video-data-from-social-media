@@ -18,22 +18,22 @@ def init_videollava():
     return model, video_processor, tokenizer
 
 def classify_videollava(sel_video, prompts, *args):
-    video = sel_video
-    conv_mode = "llava_v1"
-    conv = conv_templates[conv_mode].copy()
-    model = args[0]
-    video_processor = args[1]
-    tokenizer = args[2]
+    result = []
+    for inp in prompts:
+        torch.cuda.empty_cache()
+        video = sel_video
+        conv_mode = "llava_v1"
+        conv = conv_templates[conv_mode].copy()
+        model = args[0]
+        video_processor = args[1]
+        tokenizer = args[2]
 
-    video_tensor = video_processor(video, return_tensors='pt')['pixel_values']
-    if type(video_tensor) is list:
-        tensor = [video.to(model.device, dtype=torch.float16) for video in video_tensor]
-    else:
-        tensor = video_tensor.to(model.device, dtype=torch.float16)
-
-    result = None
-
-    for idx, inp in enumerate(prompts, 0):
+        video_tensor = video_processor(video, return_tensors='pt')['pixel_values']
+        if type(video_tensor) is list:
+            tensor = [video.to(model.device, dtype=torch.float16) for video in video_tensor]
+        else:
+            tensor = video_tensor.to(model.device, dtype=torch.float16)
+    
         inp = ' '.join([DEFAULT_IMAGE_TOKEN] * model.get_video_tower().config.num_frames) + '\n' + inp
         conv.append_message(conv.roles[0], inp)
         conv.append_message(conv.roles[1], None)
@@ -54,6 +54,6 @@ def classify_videollava(sel_video, prompts, *args):
                 stopping_criteria=[stopping_criteria])
 
         outputs = tokenizer.decode(output_ids[0, input_ids.shape[1]:]).strip()
-        result[idx] = outputs
+        result.append(outputs)
 
     return result

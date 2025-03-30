@@ -31,8 +31,10 @@ def classify_pandagpt(sel_video, prompts, *args):
     max_length = args[1]
     top_p = args[2] 
     temperature = args[3]
-    result = None
+    result = []
+
     for idx, sel_prompt in enumerate(prompts, 0):
+        torch.cuda.empty_cache()
         response = model.generate({
             "prompt": sel_prompt,
             "image_paths":[],
@@ -44,6 +46,6 @@ def classify_pandagpt(sel_video, prompts, *args):
             "max_tgt_len": max_length,
             "modality_embeds": []
             })
-        result[idx] = response
+        result.append(response)
     
     return result
