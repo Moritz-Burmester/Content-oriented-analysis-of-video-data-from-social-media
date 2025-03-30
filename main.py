@@ -53,9 +53,9 @@ PROMPTS = {
                             "protests, politics, sustainable energy like wind energy, solar energy, hydropower energy and biogas energy or fossil energy like carbon energy, natural gas energy, oil and fossil fuel? " + \
                             "Answer as short as possible.",
 
-    "consequences":         "Analyze the video. If the video is about climateconsequences like for example " + \
+    "consequences":         "Analyze the video. If the video is about climate consequences like for example " + \
                             "biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperatures, human rights or economic consequences " + \
-                            "answer with Yes, ... . If the video is not about animals answer with No, ... .",
+                            "answer with Yes, ... . If the video is not about climate consequences answer with No, ... .",
 
     "consequences_kind":    "Is the video featuring " + \
                             "biodeversity loss, covid, health, extrem weather like droughs, floods and wildfire, melting ice, sea-level rise, rising temperatures, human rights or economic consequences? " + \
@@ -172,12 +172,13 @@ def classify_model(*args):
                     tries = 0
                     solution = classify(video, [prompt], *args)[0]
                     current_result = format_result(solution, prompt)
-        
+                    print(current_result)
+
                     while tries <= 2 and current_result == "Unknown":
                         tries += 1
                         solution = classify(video, [prompt], *args)[0]
                         current_result = format_result(solution, PROMPTS[prompt_key])
-                    
+                        print(current_result)
                     
                     if current_result != "Unknown":
                         results[idx] = current_result
@@ -199,6 +200,7 @@ def classify_model(*args):
         if idx % 25 == 0 or idx == total_files:
             print_progress_status(idx, total_files, start_time)
 
+#TODO: Everything after not to the end falls out
 def format_result(result: str, prompt: str):    
     result_lower = result.lower()
     prompt_categories = {
@@ -208,7 +210,7 @@ def format_result(result: str, prompt: str):
     }
 
     if prompt in prompt_categories:
-        return prompt_categories[prompt] if "yes" in result_lower else "None" if "no" in result_lower else "Unknown"
+        return prompt_categories[prompt] if "yes" in result_lower else "No" if "no" in result_lower else "Unknown"
     elif prompt == PROMPTS["animals_kind"]:
         animals_map = {
             r"pet(s|ting)?": "Pets",
@@ -288,8 +290,7 @@ def format_result(result: str, prompt: str):
         type_map = {
             r"poster": "Poster",
             r"event\s?invitation": "Event Invitation",
-            r"meme": "Meme",
-            r"meme\s?of\s?climate\s?change": "Meme of Climate Change",
+            r"meme\s?": "Meme",
             r"infographic": "Infographic",
             r"data\s?visuali(s|z)ation": "Data Visualization",
             r"illustration": "Illustration",
