@@ -5,127 +5,310 @@ import traceback
 import pandas as pd
 import torch
 import time
+import re
 from datetime import timedelta
 
 """
-This file is for starting and using the models. First select a conda environment and update the paths accordingly.
-Then choose a prompt. 
-Each model will analyze each file indepent to each other. 
-After this the file can be used and depending on your chosen environment
+This file is for starting the models and modifying the prompts.
+To start a model the corresponding conda environment must be chosen. 
+The file works like this (Each step is a new start of the file).
+1. The main prompt gets executed on all videos of the dataset. The result get saved in the solution file. 
+2. The soltution file gets loaded. Depending one the result of the main prompt, the prompt animals, climateactions and consequences get executed. The result is saved in the same solution file.
+3. Prompt for consequences and setting get executed. This is independent from privous results and from each other. The result is saved in the same solution file.
+
+For the first prompt all duplicates get filtered. 
+Each row in the solution file has the corresponding video id with the saved results.
+Since every result gets immediately saved to the solution file, I have build a pick-up system that allows the code to pick up at the last saved result if e.g. the process gets interrupted.
 """
 
-# File paths
-dataset_path = "/ceph/lprasse/ClimateVisions/Videos"
-duplicates = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
-env_name = os.environ.get("CONDA_DEFAULT_ENV")
-solution_path = os.path.join("/work/mburmest/bachelorarbeit/", env_name + "_solution.csv")
-exception_path = os.path.join("/work/mburmest/bachelorarbeit/", env_name + "_exception.csv")
+# Global variable for using the right classification method
+classify = None
 
-# Prompt
-prompt = "What is the main color in the video?"
+# File paths
+DATASET_PATH = "/ceph/lprasse/ClimateVisions/Videos"
+DUPLICATES_PATH = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
+ENV_NAME = os.environ.get("CONDA_DEFAULT_ENV")
+SOLUTION_PATH = f"/work/mburmest/bachelorarbeit/Solution/{ENV_NAME}/{ENV_NAME}_solution.csv"
+EXCEPTION_PATH = f"/work/mburmest/bachelorarbeit/{ENV_NAME}_exception.csv"
+
+# Prompts
+PROMPTS = {
+    "animals":              "Analyze the video. If the video is about animals like for example " + \
+                            "pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds " + \
+                            "answer with Yes, ... . If the video is not about animals answer with No, ... .",
+
+    "animals_kind":         "Is the video featuring " + \
+                            "pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates, birds or other animals? " + \
+                            "Answer as short as possible.",
+
+    "climateactions":       "Analyze the video. If the video is about climateactions like for example " + \
+                            "protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel) " + \
+                            "answer with Yes, ... . If the video is not about climateactions answer with No, ... .",
+
+    "climateactions_kind":  "",
+
+    "consequences":         "Analyze the video. If the video is about climateconsequences like for example " + \
+                            "biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperature, human rights or economic consequence " + \
+                            "answer with Yes, ... . If the video is not about animals answer with No, ... .",
+
+    "consequences_kind":    "",
+
+    "setting":              "There are sixteen categories with different sub-categories (...): " + \
+                            "Residential area, Commercial area, Industrial area, Agriculture, Rural, Farm, Indoor Space (Room), Pole (Arctic, Antarctic, Not sure), Ocean, Coast, Desert, Forest, Jungle, Other nature, Other space. " + \
+                            "Asign fitting categories to the video. If a category has a sub-category asign the fitting sub-category. If no subcategory is fitting the video write: Other. "  + \
+                            "Output only the category or subcategory, without any other text like this: category1, (sub)category2,  ... . " + \
+                            "If the video does not fit in any category write: Other.",
+
+    "type":                 "There are ten categories: " + \
+                            "Poster, Event invitation, Meme of climatechange, Infographic, Data visualization, Illustration, Text, Photo, Collage" + \
+                            "Asign fitting categories to the video. Output only the category, without any other text like this: category1, ... ." + \
+                            "If the video does not fit in any category write: Other.",
+}
+
+
 
 def main():
-    print(f"Selected: {env_name}" + "\n")
+    print(f"Selected environment: {ENV_NAME}\n")
+
+    if not os.path.exists(SOLUTION_PATH):
+        pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv(SOLUTION_PATH, index=False)
 
     # Select model based on environment
-    model, *model_params = select_model(env_name)
-    if not model:
+    model_params = select_model(ENV_NAME)
+    
+    
+    print("Starting to classify")
+    classify_model(*model_params)
+    
+    #Process and Save the dataframe
+    df = pd.read_csv(SOLUTION_PATH)
+    df = process_dataframe(df)
+    df.to_csv(SOLUTION_PATH, index=False)
+
+# Imports the needed functions for the model. Initializes the model and returns the classification method and init params
+# ENV_NAME: the selected environment. "Automatic" variable
+def select_model(ENV_NAME):
+    if ENV_NAME == "videollava":
+        from classification_videollava import init_videollava, classify_videollava
+        classify = classify_videollava
+        return init_videollava()
+    elif ENV_NAME == "pandagpt":
+        from classification_pandagpt import init_pandagpt, classify_pandagpt
+        classify = classify_pandagpt
+        return init_pandagpt()
+    elif ENV_NAME == "videochatgpt":
+        from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
+        classify = classify_videochatgpt
+        return init_videochatgpt()
+    else:
         print("Error: Cannot find the selected model")
         sys.exit(1)
-
-    classify_model(model, *model_params)
-
-    # Sort the dataframe
-    if os.path.exists(solution_path):
-        df = pd.read_csv(solution_path)
-        df["date"] = pd.to_datetime(df["id"].str.split("_").str[-1])
-        df["numeric_id"] = df["id"].str.split("_").str[1].astype(int)
-        df = df.sort_values(by=["date", "numeric_id"])
-        df.drop(columns=["date", "numeric_id"]).to_csv(solution_path, index=False)
-
-"""Imports the needed functions for the model. Initializes the model and returns the classification method and init params"""
-def select_model(env_name):
-    if env_name == "videollava":
-        from classification_videollava import init_videollava, classify_videollava
-        return (classify_videollava, *init_videollava())
-    elif env_name == "pandagpt":
-        from classification_pandagpt import init_pandagpt, classify_pandagpt
-        return (classify_pandagpt, *init_pandagpt())
-    elif env_name == "videochatgpt":
-        from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
-        return (classify_videochatgpt, *init_videochatgpt())
     return None
 
-"""Classifies with the given classification method given by selectModel() and saves the result. Also it checks if a file has already been processed"""
-def classify_model(classify, *args):
-    
-    set_processed = set()
-    if os.path.exists(duplicates):
-        set_processed.update(load_csv_into_set(duplicates, "id"))
-    if os.path.exists(solution_path):
-        set_processed.update(load_csv_into_set(solution_path, "id"))
-    if os.path.exists(exception_path):
-        set_processed.update(load_csv_into_set(exception_path, "id"))
+# Process DataFrame (sorting and dropping extra columns)
+def process_dataframe(df):
+    df["date"] = pd.to_datetime(df["id"].str.split("_").str[-1])
+    df["numeric_id"] = df["id"].str.split("_").str[1].astype(int)
+    return df.sort_values(by=["date", "numeric_id"]).drop(columns=["date", "numeric_id"])
 
-    videos = glob.glob(f"{dataset_path}/2019/01_January/*.mp4")
+# Classifies with the given classification method given by selectModel() and saves the result. Also it checks if a file has already been processed. This will work for all prompts
+# classify: classification method of the chosen model
+# *args:    args needed for the corresponding classification method of the chosen model
+#TODO: Subtopic prompt & result format
+def classify_model(*args):
+    videos = glob.glob(f"{DATASET_PATH}/2019/01_January/*.mp4")
+
+    set_processed = set()
+    for path in [DUPLICATES_PATH, EXCEPTION_PATH, SOLUTION_PATH]:
+        if os.path.exists(path):
+            set_processed.update(pd.read_csv(path, usecols=["id"])["id"].dropna())
 
     start_time = time.time()
-    processed_count = 0
     total_files = len(videos)
+    
+    sel_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences", "setting", "type"]]
 
-    for video in videos:
+    for idx, video in enumerate(videos, 1):
+
         id_string = video.split("/")[-1].split(".")[0]
-        processed_count += 1
-
         if id_string in set_processed:
             continue
-
+        
         try:
-            result = classify(video, prompt, *args)
-            write_to_csv(solution_path, ["id", "solution"], [id_string, result])
+            # Get results
+            results = classify(video, sel_prompts, *args)
+
+            # Format results or try again
+            for idx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
+                tries = 0 
+                solution = response
+                current_result = format_result(solution, prompt)
+
+                while tries <= 2 and current_result == "Unknown":
+                    tries += 1
+                    solution = classify(video, [prompt], *args)[0]
+                    current_result = format_result(solution, prompt)
+
+                results[idx] = current_result
+
+
+            #TODO: What kind            
+            
+            
+            
+            write_to_csv(SOLUTION_PATH, ["id", col_name], [id_string, result])
+
         except Exception as e:
-            write_to_csv(solution_path, ["id", "solution"], [id_string, ""])
-            write_to_csv(exception_path, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
+            write_to_csv(EXCEPTION_PATH, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
+        finally:
             torch.cuda.empty_cache()
-            continue
+        
+        # Timer for progress
+        if idx % 25 == 0 or idx == total_files:
+            print_progress_status(idx, total_files, start_time)
 
-        torch.cuda.empty_cache()
+def format_result(result: str, prompt: str):
+    #setting: Residential area, Commercial area, Industrial area, Agriculture, Rural, Farm, Indoor Space (Room), Pole (Arctic, Antarctic, Not sure), Ocean, Coast, Desert, Forest, Jungle, Other nature, Other space.
+    #type: Poster, Event invitation, Meme of climatechange, Infographic, Data visualization, Illustration, Text, Photo, Collage
+    #animals_kind: pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds
+    #consequences_kind: biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperature, human rights or economic consequence 
+    #climateactions_kind: protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel)
     
-        if processed_count % 25 == 0 or processed_count == total_files:
-            print_progress_status(processed_count, total_files, start_time)
+    result_lower = result.lower()
+    prompt_categories = {
+        PROMPTS["animals"]: "animals",
+        PROMPTS["climateactions"]: "climateactions",
+        PROMPTS["consequences"]: "consequences"
+    }
 
-"""Appends a single row to a CSV file."""
-def write_to_csv(file_path, columns, data):    
-    file_exists = os.path.exists(file_path)
-    df = pd.DataFrame([data], columns=columns)
-    df.to_csv(file_path, mode="a", index=False, header=not file_exists)
+    if prompt in prompt_categories:
+        return prompt_categories[prompt] if "yes" in result_lower else "None" if "no" in result_lower else "Unknown"
+    elif prompt == PROMPTS["animals_kind"]:
+        animals_map = {
+             r"pet(s|ting)?": "Pets",
+            r"farm\s?animal(s)?": "Farm Animals",
+            r"polar\s?bear(s)?": "Polar Bear",
+            r"land\s?mammal(s)?": "Land Mammal",
+            r"sea\s?mammal(s)?": "Sea Mammal",
+            r"fish(es)?": "Fish",
+            r"amphibian(s| creatures)?": "Amphibian",
+            r"reptile(s| creatures)?": "Reptile",
+            r"invertebrate(s| creatures)?": "Invertebrates",
+            r"bird(s| species)?": "Birds",
+            r"other\s?animal(s)?": "Other Animals"
+        }
+        return find_words(result, animals_map)
+    
+    elif prompt == PROMPTS["consequences_kind"]:
+        consequences_map =  {
+            r"biodiversity\s?loss": "Biodiversity Loss",
+            r"covid(\-19)?": "Covid",
+            r"health": "Health",
+            r"extreme\s?weather": "Extreme Weather",
+            r"drought(s)?": "Drought",
+            r"flood(s)?": "Flood",
+            r"wildfire(s)?": "Wildfire",
+            r"melting\s?ice": "Melting Ice",
+            r"sea[\-\s]?level\s?rise": "Sea-Level Rise",
+            r"rising\s?temperature(s)?": "Rising Temperature",
+            r"human\s?rights?": "Human Rights",
+            r"economic\s?consequences?": "Economic Consequences",
+            r"other": "Other"
+        }
+        return find_words(result, consequences_map)
+    
+    elif prompt == PROMPTS["climateactions_kind"]:
+        climateactions_map = {
+            r"protest(s)?": "Protest",
+            r"politic(s|al)?": "Politics",
+            r"sustainable\s?energy?": "Sustainable Energy",
+            r"wind\s?energy?": "Wind Energy",
+            r"solar\s?energy?": "Solar Energy",
+            r"hydropower\s?energy?": "Hydropower Energy",
+            "biogas\s?energy?": "Biogas Energy",
+            r"fossil\s?energy?": "Fossil Energy",
+            r"carbon\s?energy?": "Carbon Energy",
+            r"natural\s?gas": "Natural Gas",
+            r"oil": "Oil",
+            r"fossil\s?fuel(s)?": "Fossil Fuel"
+        }
+        return find_words(result, climateactions_map)
+    
+    elif prompt == PROMPTS["setting"]:
+        setting_map = {
+            r"residential\s?area": "Residential Area",
+            r"commercial\s?area": "Commercial Area",
+            r"industrial\s?area": "Industrial Area",
+            r"agriculture": "Agriculture",
+            r"rural": "Rural",
+            r"farm": "Farm",
+            r"indoor\s?space": "Indoor Space",
+            r"room": "Room",
+            r"pole": "Pole",
+            r"arctic": "Arctic",
+            r"antarctic": "Antarctic",
+            r"ocean": "Ocean",
+            r"coast": "Coast",
+            r"desert": "Desert",
+            r"forest": "Forest",
+            r"jungle": "Jungle",
+            r"other\s?nature": "Other Nature",
+            r"outer\s?space": "Outer Space",
+            r"other\s?setting": "Other Setting"
+        }
+        return find_words(result, setting_map)
+    
+    elif prompt == PROMPTS["type"]:
+        type_map = {
+            r"poster": "Poster",
+            r"event\s?invitation": "Event Invitation",
+            r"meme": "Meme",
+            r"meme\s?of\s?climate\s?change": "Meme of Climate Change",
+            r"infographic": "Infographic",
+            r"data\s?visuali(s|z)ation": "Data Visualization",
+            r"illustration": "Illustration",
+            r"text": "Text",
+            r"photo": "Photo",
+            r"collage": "Collage",
+            r"other\s?type": "Other Type" 
+        }
+        return find_words(result, type_map)
+    
+
+    return "Unsafe"    
+
+def find_words(text, words_mapping):
+    matches = []
+    for pattern, word in words_mapping.items():
+        if re.search(rf"\b{pattern}\b", text, re.IGNORECASE):
+            matches.append(word)
+    return ", ".join(matches)
 
 
-"""Loads a specified column from a CSV into a set for fast lookups."""
-def load_csv_into_set(file_path: str, col_name: str) -> set:
-    try:
-        return set(pd.read_csv(file_path, usecols=[col_name], dtype=str)[col_name].dropna())
-    except Exception as e:
-        print(f"Error in load_csv_into_set(): {e}")
-        sys.exit(1)
+# Appends a single row to a CSV file. Checks where to put the data based on the id
+# file_path:    File to append to.
+# columns:      Columns to append.
+# data:         data the columns are appended with. data[0] = id
+def write_to_csv(file_path, columns, data):
+    df = pd.read_csv(file_path)
+    id_value = data[0]
+    if id_value in df['id'].values:
+        df.loc[df['id'] == id_value, columns[1:]] = data[1:]
+    else:
+        new_row = pd.DataFrame([data], columns=columns)
+        df = pd.concat([df, new_row], ignore_index=True)
 
-"""To measure the progress and to give rough estimates about the needed time"""
+    df.to_csv(file_path, index=False)
+
+
+# Prints progress updates
 def print_progress_status(processed_count, total_files, start_time):
     elapsed_time = time.time() - start_time
-    elapsed_str = str(timedelta(seconds=int(elapsed_time)))
-    
-    if processed_count > 0:
-        time_per_file = elapsed_time / processed_count
-        remaining_files = total_files - processed_count
-        remaining_time = time_per_file * remaining_files
-        remaining_str = str(timedelta(seconds=int(remaining_time)))
-        total_estimate_str = str(timedelta(seconds=int(elapsed_time + remaining_time)))
-        
-        print(f"Processed {processed_count}/{total_files} files "
-              f"({processed_count/total_files:.1%}) | "
-              f"Elapsed: {elapsed_str} | "
-              f"Remaining: {remaining_str} | "
-              f"Total estimate: {total_estimate_str}")
+    remaining_time = (elapsed_time / processed_count) * (total_files - processed_count) if processed_count else 0
+    print(f"Processed {processed_count}/{total_files} ({processed_count/total_files:.1%}) | "
+          f"Elapsed: {timedelta(seconds=int(elapsed_time))} | "
+          f"Remaining: {timedelta(seconds=int(remaining_time))} | "
+          f"Total estimate: {timedelta(seconds=int(elapsed_time + remaining_time))}")
 
-if __name__ == "__main__": 
+if __name__ == "__main__":
     main()
