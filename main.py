@@ -8,6 +8,13 @@ import time
 import re
 from datetime import timedelta
 
+
+#setting: Residential area, Commercial area, Industrial area, Agriculture, Rural, Farm, Indoor Space (Room), Pole (Arctic, Antarctic, Not sure), Ocean, Coast, Desert, Forest, Jungle, Other nature, Other space.
+    #type: Poster, Event invitation, Meme of climatechange, Infographic, Data visualization, Illustration, Text, Photo, Collage
+    #animals_kind: pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds
+    #consequences_kind: biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperature, human rights or economic consequence 
+    #climateactions_kind: protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel)
+
 """
 This file is for starting the models and modifying the prompts.
 To start a model the corresponding conda environment must be chosen. 
@@ -45,13 +52,17 @@ PROMPTS = {
                             "protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel) " + \
                             "answer with Yes, ... . If the video is not about climateactions answer with No, ... .",
 
-    "climateactions_kind":  "",
+    "climateactions_kind":  "Is the video featuring " + \
+                            "protests, politics, sustainable energy like wind energy, solar energy, hydropower energy and biogas energy or fossil energy like carbon energy, natural gas energy, oil and fossil fuel? " + \
+                            "Answer as short as possible.",
 
     "consequences":         "Analyze the video. If the video is about climateconsequences like for example " + \
-                            "biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperature, human rights or economic consequence " + \
+                            "biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperatures, human rights or economic consequences " + \
                             "answer with Yes, ... . If the video is not about animals answer with No, ... .",
 
-    "consequences_kind":    "",
+    "consequences_kind":    "Is the video featuring " + \
+                            "biodeversity loss, covid, health, extrem weather like droughs, floods and wildfire, melting ice, sea-level rise, rising temperatures, human rights or economic consequences? " + \
+                            "Answer as short as possible.",
 
     "setting":              "There are sixteen categories with different sub-categories (...): " + \
                             "Residential area, Commercial area, Industrial area, Agriculture, Rural, Farm, Indoor Space (Room), Pole (Arctic, Antarctic, Not sure), Ocean, Coast, Desert, Forest, Jungle, Other nature, Other space. " + \
@@ -59,10 +70,13 @@ PROMPTS = {
                             "Output only the category or subcategory, without any other text like this: category1, (sub)category2,  ... . " + \
                             "If the video does not fit in any category write: Other.",
 
-    "type":                 "There are ten categories: " + \
-                            "Poster, Event invitation, Meme of climatechange, Infographic, Data visualization, Illustration, Text, Photo, Collage" + \
-                            "Asign fitting categories to the video. Output only the category, without any other text like this: category1, ... ." + \
-                            "If the video does not fit in any category write: Other.",
+    "setting":              "Analyze the video. " + \
+                            "Is the setting of the video a residential area, commercial area, industrial area, agriculture, rural, a farm, an indoor space like a room or something else, a pole like arctic or antarctic, an ocean, a coast, a desert, a forest, a jungle, other nature, other space or outer space? " + \
+                            "Answer as short as possible.",
+
+    "type":                 "Analyze the video. " + \
+                            "Is the video a poster, an event invitation, a meme of climatechange, a meme in general, an infographic, a data visualization, an illustration, a text, a photo, a collage or something other? " + \
+                            "Answer as short as possible.",
 }
 
 
@@ -151,12 +165,22 @@ def classify_model(*args):
 
                 results[idx] = current_result
 
-
-            #TODO: What kind            
+            # Get specific results
+            for idx, response in enumerate(results):
+                if response in ["animals" , "climateactions", "consequences"]:  
+                    prompt_key = f"{response}_kind"
+                    tries = 0
+                    current_result = classify(video, [PROMPTS[prompt_key]], *args)[0]
+        
+                    while tries <= 2 and current_result == "Unknown":
+                        tries += 1
+                        solution = classify(video, [PROMPTS[prompt_key]], *args)[0]
+                        current_result = format_result(solution, PROMPTS[prompt_key])
+                        
+                    if current_result is not "Unknown":
+                        results[idx] = current_result
             
-            
-            
-            write_to_csv(SOLUTION_PATH, ["id", col_name], [id_string, result])
+            write_to_csv(SOLUTION_PATH, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results)
 
         except Exception as e:
             write_to_csv(EXCEPTION_PATH, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
@@ -167,13 +191,7 @@ def classify_model(*args):
         if idx % 25 == 0 or idx == total_files:
             print_progress_status(idx, total_files, start_time)
 
-def format_result(result: str, prompt: str):
-    #setting: Residential area, Commercial area, Industrial area, Agriculture, Rural, Farm, Indoor Space (Room), Pole (Arctic, Antarctic, Not sure), Ocean, Coast, Desert, Forest, Jungle, Other nature, Other space.
-    #type: Poster, Event invitation, Meme of climatechange, Infographic, Data visualization, Illustration, Text, Photo, Collage
-    #animals_kind: pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds
-    #consequences_kind: biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperature, human rights or economic consequence 
-    #climateactions_kind: protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel)
-    
+def format_result(result: str, prompt: str):    
     result_lower = result.lower()
     prompt_categories = {
         PROMPTS["animals"]: "animals",
@@ -185,7 +203,7 @@ def format_result(result: str, prompt: str):
         return prompt_categories[prompt] if "yes" in result_lower else "None" if "no" in result_lower else "Unknown"
     elif prompt == PROMPTS["animals_kind"]:
         animals_map = {
-             r"pet(s|ting)?": "Pets",
+            r"pet(s|ting)?": "Pets",
             r"farm\s?animal(s)?": "Farm Animals",
             r"polar\s?bear(s)?": "Polar Bear",
             r"land\s?mammal(s)?": "Land Mammal",
@@ -282,7 +300,7 @@ def find_words(text, words_mapping):
     for pattern, word in words_mapping.items():
         if re.search(rf"\b{pattern}\b", text, re.IGNORECASE):
             matches.append(word)
-    return ", ".join(matches)
+    return ", ".join(matches) if matches else "Unknown"
 
 
 # Appends a single row to a CSV file. Checks where to put the data based on the id
