@@ -3,9 +3,9 @@ import sys
 import os
 import traceback
 import pandas as pd
-import torch
 import time
 import re
+import torch
 from datetime import timedelta
 
 
@@ -36,44 +36,39 @@ SOLUTION_PATH = f"/work/mburmest/bachelorarbeit/Solution/{ENV_NAME}/{ENV_NAME}_s
 EXCEPTION_PATH = f"/work/mburmest/bachelorarbeit/{ENV_NAME}_exception.csv"
 
 # Prompts
+#TODO: Only answer with what kind. -> Sort the video in the following categories. 
 PROMPTS = {
     "animals":              "Analyze the video. If the video is about animals like for example " + \
                             "pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds " + \
                             "answer with Yes, ... . If the video is not about animals answer with No, ... .",
 
-    "animals_kind":         "Is the video featuring " + \
-                            "pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates, birds or other animals? " + \
-                            "Answer as short as possible.",
+    "animals_kind":         "Analyze the video. What kind of animals is the video featuring? Is it "+ \
+                            "pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertebrates, birds, or other animals? " + \
+                            "Answer with only the relevant categories from the list, separated by commas if multiple. Do not include any extra words or explanations.",
 
     "climateactions":       "Analyze the video. If the video is about climateactions like for example " + \
                             "protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel) " + \
                             "answer with Yes, ... . If the video is not about climateactions answer with No, ... .",
 
-    "climateactions_kind":  "Is the video featuring " + \
-                            "protests, politics, sustainable energy like wind energy, solar energy, hydropower energy and biogas energy or fossil energy like carbon energy, natural gas energy, oil and fossil fuel? " + \
-                            "Answer as short as possible.",
+    "climateactions_kind":  "Analyze the video. What kind of climate actions is the video featuring? Is it " + \
+                            "protests, politics, sustainable energy (wind energy, solar energy, hydropower energy, biogas energy), or fossil energy (carbon energy, natural gas energy, oil, fossil fuel)? " + \
+                            "Answer with only the relevant categories from the list, separated by commas if multiple. Do not include any extra words or explanations.",
 
     "consequences":         "Analyze the video. If the video is about climate consequences like for example " + \
                             "biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperatures, human rights or economic consequences " + \
                             "answer with Yes, ... . If the video is not about climate consequences answer with No, ... .",
 
-    "consequences_kind":    "Is the video featuring " + \
-                            "biodeversity loss, covid, health, extrem weather like droughs, floods and wildfire, melting ice, sea-level rise, rising temperatures, human rights or economic consequences? " + \
-                            "Answer as short as possible.",
-
-    "setting":              "There are sixteen categories with different sub-categories (...): " + \
-                            "Residential area, Commercial area, Industrial area, Agriculture, Rural, Farm, Indoor Space (Room), Pole (Arctic, Antarctic, Not sure), Ocean, Coast, Desert, Forest, Jungle, Other nature, Other space. " + \
-                            "Asign fitting categories to the video. If a category has a sub-category asign the fitting sub-category. If no subcategory is fitting the video write: Other. "  + \
-                            "Output only the category or subcategory, without any other text like this: category1, (sub)category2,  ... . " + \
-                            "If the video does not fit in any category write: Other.",
+    "consequences_kind":    "Analyze the video. What kind of climate consequences is the video featuring? Is it " + \
+                            "biodiversity loss, covid, health, extreme weather (droughts, floods, wildfires), melting ice, sea-level rise, rising temperatures, human rights, or economic consequences? " + \
+                            "Answer with only the relevant categories from the list, separated by commas if multiple. Do not include any extra words or explanations.",
 
     "setting":              "Analyze the video. " + \
                             "Is the setting of the video a residential area, commercial area, industrial area, agriculture, rural, a farm, an indoor space like a room or something else, a pole like arctic or antarctic, an ocean, a coast, a desert, a forest, a jungle, other nature, other space or outer space? " + \
-                            "Answer as short as possible.",
+                            "Answer as short as possible. Only mention things that are in the video.",
 
     "type":                 "Analyze the video. " + \
                             "Is the video a poster, an event invitation, a meme of climatechange, a meme in general, an infographic, a data visualization, an illustration, a text, a photo, a collage or something other? " + \
-                            "Answer as short as possible.",
+                            "Answer as short as possible. Only mention things that are in the video.",
 }
 
 def main():
@@ -140,52 +135,50 @@ def classify_model(*args):
     sel_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences", "setting", "type"]]
 
     for idx, video in enumerate(videos, 1):
-
+        print("\n\n")
         id_string = video.split("/")[-1].split(".")[0]
         if id_string in set_processed:
             continue
         
         try:
+            #Get all 
+            torch.cuda.empty_cache()
             results = classify(video, sel_prompts, *args)
+            print("Raw Result: ")
             print(results)
             
             # Format results or try again
             for idx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
-                tries = 0 
-                solution = response
-                current_result = format_result(solution, prompt)
+                print("Prompt: " + prompt)
+                print("Resonse: " + response)
+                current_result = format_result(response, prompt)
+                print("Formatted: " + current_result)
 
-                while tries <= 2 and current_result == "Unknown":
-                    tries += 1
-                    solution = classify(video, [prompt], *args)[0]
-                    current_result = format_result(solution, prompt)
+                # Asking for what kind it is
+                if current_result in ["animals" , "climateactions", "consequences"]:
+                    prompt_key = f"{current_result}_kind"
+                    prompt_kind = PROMPTS[prompt_key]
+                    print("Prompt_Kind:" + prompt_key)
 
+                    torch.cuda.empty_cache()
+                    response_kind = classify(video, [prompt_kind], *args)[0]
+                    print("Response_kind: " + response_kind)
+
+                    current_result = format_result(response_kind, prompt_kind)
+                    print("Formatted_kind 1: " + current_result)
+
+                    if current_result == "Unknown": 
+                        current_result = "Other"
+                        print("Formatted_kind 2: " + current_result)
+
+                print("Final Result: " + current_result)
                 results[idx] = current_result
-            
-            print(results)
+                 
             # Get specific results
-            for idx, response in enumerate(results):
-                if response in ["animals" , "climateactions", "consequences"]:  
-                    prompt_key = f"{response}_kind"
-                    prompt = PROMPTS[prompt_key]
-                    print("PROMTKEY: " + prompt_key)
-                    tries = 0
-                    solution = classify(video, [prompt], *args)[0]
-                    current_result = format_result(solution, prompt)
-                    print(current_result)
-
-                    while tries <= 2 and current_result == "Unknown":
-                        tries += 1
-                        solution = classify(video, [prompt], *args)[0]
-                        current_result = format_result(solution, PROMPTS[prompt_key])
-                        print(current_result)
-                    
-                    if current_result != "Unknown":
-                        results[idx] = current_result
-            
+            print("Final Results: ")
             print(results)
             write_to_csv(SOLUTION_PATH, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results)
-            print("\n\n")
+            
 
         except Exception as e:
 
@@ -194,122 +187,129 @@ def classify_model(*args):
 
             write_to_csv(EXCEPTION_PATH, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
         
-            
-        
         # Timer for progress
         if idx % 25 == 0 or idx == total_files:
             print_progress_status(idx, total_files, start_time)
 
-#TODO: Everything after not to the end falls out
+
 def format_result(result: str, prompt: str):    
-    result_lower = result.lower()
+    result_lower = result.lower().strip()
+    
+    # Clean the string (remove content after "not" and trailing tags/special chars)
+    result_lower = re.sub(r'not.*?(?=\.|$)', '', result_lower)
+    result_lower = re.sub(r'<[^>]+>', '', result_lower)  # Remove HTML-like tags
+    result_lower = result_lower.strip(" .")  # Trim trailing dots/spaces
+
     prompt_categories = {
         PROMPTS["animals"]: "animals",
         PROMPTS["climateactions"]: "climateactions",
         PROMPTS["consequences"]: "consequences"
     }
 
+    # Handle yes/no/unknown prompts
     if prompt in prompt_categories:
-        return prompt_categories[prompt] if "yes" in result_lower else "No" if "no" in result_lower else "Unknown"
+        if re.search(r'\byes\b', result_lower):
+            return prompt_categories[prompt]
+        elif re.search(r'\bno\b', result_lower):
+            return "No"
+        return "Unknown"
+    
+    # Handle detailed category prompts
     elif prompt == PROMPTS["animals_kind"]:
         animals_map = {
-            r"pet(s|ting)?": "Pets",
-            r"farm\s?animal(s)?": "Farm Animals",
-            r"polar\s?bear(s)?": "Polar Bear",
-            r"land\s?mammal(s)?": "Land Mammal",
-            r"sea\s?mammal(s)?": "Sea Mammal",
-            r"fish(es)?": "Fish",
-            r"amphibian(s| creatures)?": "Amphibian",
-            r"reptile(s| creatures)?": "Reptile",
-            r"invertebrate(s| creatures)?": "Invertebrates",
-            r"bird(s| species)?": "Birds",
-            r"other\s?animal(s)?": "Other Animals"
-        }
-        return find_words(result, animals_map)
-    
+            r"(pet(s|ting)?)\b": "Pets",   
+            r"(farm(\s?animal(s)?)?)\b": "Farm Animals",   
+            r"(polar(\s?bear(s)?)?)\b": "Polar Bears", 
+            r"(land(\s?mammal(s)?)?)\b": "Land Mammals",   
+            r"(sea(\s?mammal(s)?)?)\b": "Sea Mammals", 
+            r"(fish(es)?)\b": "Fish",  
+            r"(amphibian(s| creatures)?)\b": "Amphibians",  
+            r"(reptile(s| creatures)?)\b": "Reptiles",  
+            r"(invertebrate(s| creatures)?)\b": "Invertebrates",   
+            r"(bird(s| species)?)\b": "Birds", 
+            r"(other(\s?animal(s)?)?)\b": "Other Animals"  
+        }  
+        return find_words(result_lower, animals_map)
+
     elif prompt == PROMPTS["consequences_kind"]:
-        consequences_map =  {
-            r"biodiversity\s?loss": "Biodiversity Loss",
-            r"covid(\-19)?": "Covid",
-            r"health": "Health",
-            r"extreme\s?weather": "Extreme Weather",
-            r"drought(s)?": "Drought",
-            r"flood(s)?": "Flood",
-            r"wildfire(s)?": "Wildfire",
-            r"melting\s?ice": "Melting Ice",
-            r"sea[\-\s]?level\s?rise": "Sea-Level Rise",
-            r"rising\s?temperature(s)?": "Rising Temperature",
-            r"human\s?rights?": "Human Rights",
-            r"economic\s?consequences?": "Economic Consequences",
-            r"other": "Other"
+        consequences_map = {
+            r"(biodiversity(\s?loss)?)\b": "Biodiversity Loss",
+            r"(covid(\-19)?)\b": "Covid",
+            r"health\b": "Health",
+            r"(drought(s)?)\b": "Droughts",
+            r"(flood(s)?)\b": "Floods",
+            r"(wildfire(s)?)\b": "Wildfires",
+            r"(melting(\s?ice)?)\b": "Melting Ice",
+            r"(sea[\-\s]?level(\s?rise)?)\b": "Sea-Level Rise",
+            r"(rising(\s?temperature(s)?)?)\b": "Rising Temperature",
+            r"(human(\s?rights?)?)\b": "Human Rights",
+            r"(economic(\s?consequences?)?)\b": "Economic Consequences",
+            r"(extreme\s?weather)\b": "Extreme Weather"
         }
-        return find_words(result, consequences_map)
-    
+        return find_words(result_lower, consequences_map)
+
     elif prompt == PROMPTS["climateactions_kind"]:
         climateactions_map = {
-            r"protest(s)?": "Protest",
-            r"politic(s|al)?": "Politics",
-            r"sustainable\s?energy?": "Sustainable Energy",
-            r"wind\s?energy?": "Wind Energy",
-            r"solar\s?energy?": "Solar Energy",
-            r"hydropower\s?energy?": "Hydropower Energy",
-            "biogas\s?energy?": "Biogas Energy",
-            r"fossil\s?energy?": "Fossil Energy",
-            r"carbon\s?energy?": "Carbon Energy",
-            r"natural\s?gas": "Natural Gas",
-            r"oil": "Oil",
-            r"fossil\s?fuel(s)?": "Fossil Fuel"
+            r"(protest(s)?)\b": "Protests",
+            r"(politic(s|al)?)\b": "Politics",
+            r"(wind(\s?energy)?)\b": "Wind Energy",
+            r"(solar(\s?energy)?)\b": "Solar Energy",
+            r"(hydropower(\s?energy)?)\b": "Hydropower Energy",
+            r"(biogas(\s?energy)?)\b": "Biogas Energy",
+            r"(carbon(\s?energy)?)\b": "Carbon Energy",
+            r"(natural(\s?gas)?)\b": "Natural Gas",
+            r"oil\b": "Oil",
+            r"(fossil(\s?fuel(s)?)?)\b": "Fossil Fuels",
+            r"(sustainable(\s?energy)?)\b": "Sustainable Energy",
+            r"(fossil(\s?energy)?)\b": "Fossil Energy"
         }
-        return find_words(result, climateactions_map)
-    
+        return find_words(result_lower, climateactions_map)
+
     elif prompt == PROMPTS["setting"]:
         setting_map = {
-            r"residential\s?area": "Residential Area",
-            r"commercial\s?area": "Commercial Area",
-            r"industrial\s?area": "Industrial Area",
-            r"agriculture": "Agriculture",
-            r"rural": "Rural",
-            r"farm": "Farm",
-            r"indoor\s?space": "Indoor Space",
-            r"room": "Room",
-            r"pole": "Pole",
-            r"arctic": "Arctic",
-            r"antarctic": "Antarctic",
-            r"ocean": "Ocean",
-            r"coast": "Coast",
-            r"desert": "Desert",
-            r"forest": "Forest",
-            r"jungle": "Jungle",
-            r"other\s?nature": "Other Nature",
-            r"outer\s?space": "Outer Space",
-            r"other\s?setting": "Other Setting"
+            r"(industrial(\s?area)?)\b": "Industrial Area",
+            r"(residential(\s?area)?)\b": "Residential Area",  # Fixed label
+            r"(commercial(\s?area)?)\b": "Commercial Area",  # Fixed label
+            r"agriculture\b": "Agriculture",
+            r"rural\b": "Rural",
+            r"farm\b": "Farm",
+            r"(indoor(\s?space)?)\b": "Indoor Space",
+            r"room\b": "Room",
+            r"pole\b": "Pole",
+            r"arctic\b": "Arctic",
+            r"antarctic\b": "Antarctic",
+            r"ocean\b": "Ocean",
+            r"coast\b": "Coast",
+            r"desert\b": "Desert",
+            r"forest\b": "Forest",
+            r"jungle\b": "Jungle",
+            r"(other\s?nature)\b": "Other Nature",
+            r"(outer\s?space)\b": "Outer Space"
         }
-        return find_words(result, setting_map)
-    
+        return find_words(result_lower, setting_map)
+
     elif prompt == PROMPTS["type"]:
         type_map = {
-            r"poster": "Poster",
-            r"event\s?invitation": "Event Invitation",
-            r"meme\s?": "Meme",
-            r"infographic": "Infographic",
-            r"data\s?visuali(s|z)ation": "Data Visualization",
-            r"illustration": "Illustration",
-            r"text": "Text",
-            r"photo": "Photo",
-            r"collage": "Collage",
-            r"other\s?type": "Other Type" 
+            r"poster\b": "Poster",
+            r"(event(\s?invitation)?)\b": "Event Invitation",
+            r"meme\b": "Meme",
+            r"infographic\b": "Infographic",
+            r"(data\s?visuali(s|z)ation)\b": "Data Visualization",
+            r"illustration\b": "Illustration",
+            r"text\b": "Text",
+            r"photo\b": "Photo",
+            r"collage\b": "Collage",
         }
-        return find_words(result, type_map)
+        return find_words(result_lower, type_map)
     
-
-    return "Unsafe"    
+    return "Unknown"
 
 def find_words(text, words_mapping):
     matches = []
     for pattern, word in words_mapping.items():
-        if re.search(rf"\b{pattern}\b", text, re.IGNORECASE):
+        if re.search(pattern, text, re.IGNORECASE):
             matches.append(word)
-    return ", ".join(matches) if matches else "Unknown"
+    return " | ".join(matches) if matches else "Unknown"
 
 
 # Appends a single row to a CSV file. Checks where to put the data based on the id
