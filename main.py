@@ -76,8 +76,7 @@ def main():
     df = process_dataframe(df)
     df.to_csv(SOLUTION_PATH, index=False)
 
-# Imports the needed functions for the model. Initializes the model and returns the classification method and init params
-# ENV_NAME: the selected environment. "Automatic" variable
+
 def select_model(ENV_NAME: str):
     """
     Depending on the selected environment inits the model and classify method

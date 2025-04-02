@@ -4,11 +4,14 @@ from Video_ChatGPT.video_chatgpt.eval.model_utils import initialize_model
 from Video_ChatGPT.video_chatgpt.constants import *
 from Video_ChatGPT.video_chatgpt.video_conversation import (default_conversation)
 
-"""
-Needs approximately 18GB of GPU memory
-"""
-
 def init_videochatgpt():
+    """
+    Inits the model
+
+    Return:
+        Parameters of the model
+    """
+    
     model_name = "/work/mburmest/bachelorarbeit/Video_ChatGPT/LLaVA-7B-Lightning-v1-1"
     projection_path = "/work/mburmest/bachelorarbeit/Video_ChatGPT/video_chatgpt-7B.bin"
     temperature =  0.1
@@ -18,8 +21,19 @@ def init_videochatgpt():
     return model, model_name, vision_tower, tokenizer, image_processor, video_token_len, temperature, max_output_tokens
 
 def classify_videochatgpt(sel_video, prompts, *args):
-    result = []
+    """
+    Classifies a video for a selection of prompts
     
+    Inputs:
+        sel_video: Path to the video that is classified
+        prompts: List of prompts used on that video
+        *args: Parameters created from init() for running the model
+
+    Return:
+        List of results
+    """
+
+    result = []
     for sel_prompt in prompts:
         torch.cuda.empty_cache()
         model = args[0]

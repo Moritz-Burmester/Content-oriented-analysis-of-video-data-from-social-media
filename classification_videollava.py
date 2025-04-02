@@ -6,6 +6,13 @@ from Video_LLaVA.videollava.utils import disable_torch_init
 from Video_LLaVA.videollava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 
 def init_videollava():
+    """
+    Inits the model
+
+    Return:
+        Parameters of the model
+    """
+
     disable_torch_init()
     model_path = 'LanguageBind/Video-LLaVA-7B'
     cache_dir = 'cache_dir'
@@ -18,6 +25,18 @@ def init_videollava():
     return model, video_processor, tokenizer
 
 def classify_videollava(sel_video, prompts, *args):
+    """
+    Classifies a video for a selection of prompts
+    
+    Inputs:
+        sel_video: Path to the video that is classified
+        prompts: List of prompts used on that video
+        *args: Parameters created from init() for running the model
+
+    Return:
+        List of results
+    """
+    
     result = []
     for inp in prompts:
         torch.cuda.empty_cache()
