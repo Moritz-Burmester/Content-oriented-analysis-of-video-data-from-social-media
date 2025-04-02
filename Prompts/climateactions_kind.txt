@@ -1,0 +1,12 @@
+Analyze the video. What kind of climate actions is the video featuring? Select from:
+1. Politics (e.g. COP conferences, climate summits, policy meetings)
+2. Protests (e.g. climate marches, Fridays for Future, Extinction Rebellion)
+3. Solar energy (e.g. solar panels, solar farms)
+4. Wind energy (e.g. wind turbines, wind farms)
+5. Hydropower (e.g. hydroelectric dams, tidal energy)
+6. Bioenergy (e.g. biogas, biomass plants)
+7. Coal (e.g. coal mines, coal power plants)
+8. Oil (e.g. oil rigs, oil pipelines)
+9. Natural gas (e.g. fracking, gas power plants)
+10. Other climate action (e.g. actions not listed above)
+Answer with only the relevant category numbers (e.g. "1, 5"). No extra words or explanations. 

@@ -1,0 +1,4 @@
+Analyze the video. 
+If the video contains animals like for example
+pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds
+answer with "Yes, ..." . If the video is not about animals answer with "No, ...".

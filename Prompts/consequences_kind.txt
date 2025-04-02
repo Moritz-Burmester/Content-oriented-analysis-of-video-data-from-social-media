@@ -1,0 +1,15 @@
+Analyze the video. What kind of climate consequences is the video featuring? Select from:
+1. Floods (e.g. inundation from heavy rain, river overflow)
+2. Drought (e.g. dry land, parched conditions, water scarcity)
+3. Wildfires (e.g. forest fires, grassland fires)
+4. Rising temperature (e.g. heatwaves, heat stress indicators)
+5. Other extreme weather events (e.g. hurricanes, tornadoes)
+6. Melting Ice (e.g. glaciers, icebergs, polar ice loss)
+7. Sea level rise (e.g. coastal erosion, submerged areas)
+8. Human rights (e.g. climate migration, conflict over resources)
+9. Economic consequences (e.g. market impacts, financial losses)
+10. Biodiversity loss (e.g. species extinction, deforestation)
+11. Covid (e.g. corona crisis related) 
+12. Health (e.g. pandemics, health crises)
+13. Other consequence (e.g. consequences not listed above)
+Answer with only the relevant category numbers (e.g. "1, 5"). No extra words or explanations. 

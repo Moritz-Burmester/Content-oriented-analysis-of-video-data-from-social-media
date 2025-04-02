@@ -101,3 +101,80 @@ You need to classify the given video. Follow these steps:
                         "1. Analyze the video's content. " + \
                         "2. Answer with Yes if the video is about animals like pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates, birds or other animals. " + \
                         "3. Output your answer.",
+
+
+
+PROBLEMS:
+PandaGPT:
+Raw Result: 
+['Yes, the video is about a cat sitting on a ledge outside a building.', 'Yes, the video is about climate actions, specifically focusing on a protest against a wind turbine.', 'The video is about climate consequences, specifically focusing on the impact of climate change on biodeversity loss.', 'The setting of the video is a residential area, as it features a cat sitting on a ledge outside a window.', 'The video is a poster featuring a cat sitting on a ledge and looking out a window.']
+Prompt: Analyze the video. If the video is about animals like for example pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds answer with Yes, ... . If the video is not about animals answer with No, ... .
+Resonse: Yes, the video is about a cat sitting on a ledge outside a building.
+Formatted: animals
+Prompt_Kind:animals_kind
+Response_kind: The video features a cat and a dog. => NO PETS
+Formatted_kind 1: Unknown
+Formatted_kind 2: Other
+Final Result: Other
+Prompt: Analyze the video. If the video is about climateactions like for example protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel) answer with Yes, ... . If the video is not about climateactions answer with No, ... .
+Resonse: Yes, the video is about climate actions, specifically focusing on a protest against a wind turbine.
+Formatted: climateactions
+Prompt_Kind:climateactions_kind
+Response_kind: The video features a cat sitting on a window sill, looking out the window. It does not depict any climate actions, protests, politics, sustainable energy, or fossil energy.
+Formatted_kind 1: Unknown
+Formatted_kind 2: Other
+Final Result: Other
+Prompt: Analyze the video. If the video is about climate consequences like for example biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperatures, human rights or economic consequences answer with Yes, ... . If the video is not about climate consequences answer with No, ... .
+Resonse: The video is about climate consequences, specifically focusing on the impact of climate change on biodeversity loss.
+Formatted: Unknown
+Final Result: Unknown
+Prompt: Analyze the video. Is the setting of the video a residential area, commercial area, industrial area, agriculture, rural, a farm, an indoor space like a room or something else, a pole like arctic or antarctic, an ocean, a coast, a desert, a forest, a jungle, other nature, other space or outer space? Answer as short as possible. Only mention things that are in the video.
+Resonse: The setting of the video is a residential area, as it features a cat sitting on a ledge outside a window.
+Formatted: Residential Area
+Final Result: Residential Area
+Prompt: Analyze the video. Is the video a poster, an event invitation, a meme of climatechange, a meme in general, an infographic, a data visualization, an illustration, a text, a photo, a collage or something other? Answer as short as possible. Only mention things that are in the video.
+Resonse: The video is a poster featuring a cat sitting on a ledge and looking out a window.
+Formatted: Poster
+Final Result: Poster
+Final Results: 
+['Other', 'Other', 'Unknown', 'Residential Area', 'Poster']
+
+VIDEOCHATGPT: -> Wiederspricht sich mit climateconsequences
+2025-04-01 12:58:30 | INFO | stdout | Raw Result:
+2025-04-01 12:58:30 | INFO | stdout | ['Yes, the video is about animals.', 'Yes, the video is about climate actions, specifically about protests and sustainable energy.', 'Yes, the video is about climate consequences, specifically focusing on biodeversity loss, which is a significant issue in the world today. The video highlights the importance of preserving biodiversity and the consequences of losing it, such as the loss of ecosystems and the extinction of many species. The video also touches upon the impact of climate change on human health, extreme weather events, melting ice, sea-level rise, and rising temperatures. The video concludes by emphasizing the need for urgent action to address these issues and protect our planet.', 'The video shows a woman sitting on a chair in a room.', 'The video is a meme of climatechange.']
+2025-04-01 12:58:30 | INFO | stdout | Prompt: Analyze the video. If the video is about animals like for example pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds answer with Yes, ... . If the video is not about animals answer with No, ... .
+2025-04-01 12:58:30 | INFO | stdout | Resonse: Yes, the video is about animals.
+2025-04-01 12:58:30 | INFO | stdout | Formatted: animals
+2025-04-01 12:58:30 | INFO | stdout | Prompt_Kind:animals_kind
+2025-04-01 12:58:31 | INFO | stdout | Response_kind: The video features a woman with blonde hair.
+2025-04-01 12:58:31 | INFO | stdout | Formatted_kind 1: Unknown
+2025-04-01 12:58:31 | INFO | stdout | Formatted_kind 2: Other
+2025-04-01 12:58:31 | INFO | stdout | Final Result: Other
+2025-04-01 12:58:31 | INFO | stdout | Prompt: Analyze the video. If the video is about climateactions like for example protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel) answer with Yes, ... . If the video is not about climateactions answer with No, ... .
+2025-04-01 12:58:31 | INFO | stdout | Resonse: Yes, the video is about climate actions, specifically about protests and sustainable energy.
+2025-04-01 12:58:31 | INFO | stdout | Formatted: climateactions
+2025-04-01 12:58:31 | INFO | stdout | Prompt_Kind:climateactions_kind
+2025-04-01 12:58:33 | INFO | stdout | Response_kind: The video features a woman talking about climate change and the need for sustainable energy.
+2025-04-01 12:58:33 | INFO | stdout | Formatted_kind 1: Sustainable Energy
+2025-04-01 12:58:33 | INFO | stdout | Final Result: Sustainable Energy
+2025-04-01 12:58:33 | INFO | stdout | Prompt: Analyze the video. If the video is about climate consequences like for example biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperatures, human rights or economic consequences answer with Yes, ... . If the video is not about climate consequences answer with No, ... .
+2025-04-01 12:58:33 | INFO | stdout | Resonse: Yes, the video is about climate consequences, specifically focusing on biodeversity loss, which is a significant issue in the world today. The video highlights the importance of preserving biodiversity and the consequences of losing it, such as the loss of ecosystems and the extinction of many species. The video also touches upon the impact of climate change on human health, extreme weather events, melting ice, sea-level rise, and rising temperatures. The video concludes by emphasizing the need for urgent action to address these issues and protect our planet.
+2025-04-01 12:58:33 | INFO | stdout | Formatted: consequences
+2025-04-01 12:58:33 | INFO | stdout | Prompt_Kind:consequences_kind
+2025-04-01 12:58:38 | INFO | stdout | Response_kind: The video features a woman wearing a black dress and a white shirt, sitting on a chair and talking about climate consequences. The woman is wearing a black dress and a white shirt, and she is sitting on a chair. The video does not provide any information about the climate consequences being discussed.
+2025-04-01 12:58:38 | INFO | stdout | Formatted_kind 1: Unknown
+2025-04-01 12:58:38 | INFO | stdout | Formatted_kind 2: Other
+2025-04-01 12:58:38 | INFO | stdout | Final Result: Other
+2025-04-01 12:58:38 | INFO | stdout | Prompt: Analyze the video. Is the setting of the video a residential area, commercial area, industrial area, agriculture, rural, a farm, an indoor space like a room or something else, a pole like arctic or antarctic, an ocean, a coast, a desert, a forest, a jungle, other nature, other space or outer space? Answer as short as possible. Only mention things that are in the video.
+2025-04-01 12:58:38 | INFO | stdout | Resonse: The video shows a woman sitting on a chair in a room.
+2025-04-01 12:58:38 | INFO | stdout | Formatted: Room
+2025-04-01 12:58:38 | INFO | stdout | Final Result: Room
+2025-04-01 12:58:38 | INFO | stdout | Prompt: Analyze the video. Is the video a poster, an event invitation, a meme of climatechange, a meme in general, an infographic, a data visualization, an illustration, a text, a photo, a collage or something other? Answer as short as possible. Only mention things that are in the video.
+2025-04-01 12:58:38 | INFO | stdout | Resonse: The video is a meme of climatechange.
+2025-04-01 12:58:38 | INFO | stdout | Formatted: Meme
+2025-04-01 12:58:38 | INFO | stdout | Final Result: Meme
+2025-04-01 12:58:38 | INFO | stdout | Final Results:
+2025-04-01 12:58:38 | INFO | stdout | ['Other', 'Sustainable Energy', 'Other', 'Room', 'Meme']
+
+
+Answer in category numbers to remove the error -> Cats and Dogs -> Pets

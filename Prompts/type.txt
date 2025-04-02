@@ -1,0 +1,11 @@
+Analyze the video. What type of video is it? Select from:
+1. Event invitations (e.g. event ads, promotional materials)
+2. Meme (e.g. humorous/satirical image-text combinations)
+3. Infographic (e.g. visual overviews with minimal text)
+4. Data visualization (e.g. graphs, charts, detailed data maps)
+5. Illustration (e.g. drawings, paintings, cartoons)
+6. Screenshot (e.g. captured text, news articles, social media posts)
+7. Single photo (e.g. individual photographs, may include text overlay)
+8. Photo collage (e.g. multiple combined images)
+9. Other type (e.g. types not listed above)
+Answer with only the relevant category numbers (e.g. "1, 5"). No extra words or explanations. 

@@ -1,0 +1,17 @@
+Analyze the video. What kind of setting is the video in? Select from:
+1. No setting (e.g. single-color background, abstract patterns)  
+2. Residential area(e.g. apartment buildings, lawns)  
+3. Industrial area (e.g. factories, warehouses, pipelines)
+4. Commercial area (e.g. shops, shopping centre, malls)
+5. Agricultural (e.g. farms, barns, fields, feedlots)  
+6. Rural (e.g. rural landscape, smalll town)
+7. Indoor space (e.g. rooms, offices, indoor facilities)  
+8. Arctic, Antarctica (e.g. polar landscapes, ice sheets)  
+9. Ocean (e.g. mostly sea views, underwater)
+10.coastal (e.g. beaches, sea views with land)  
+11. Desert (e.g. sand dunes, arid landscapes)  
+12. Forest, jungle (e.g. woodlands, rainforests)  
+13. Other Nature (e.g. nature not listed above)  
+14. Outer space (e.g. planets, stars, space missions)  
+15. Other setting (e.g. settings not listed above)  
+Answer with only the relevant category numbers (e.g. "1, 5"). No extra words or explanations. 
