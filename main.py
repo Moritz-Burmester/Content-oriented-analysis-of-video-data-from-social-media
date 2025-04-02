@@ -8,24 +8,10 @@ import re
 import torch
 from datetime import timedelta
 
-
-#setting: Residential area, Commercial area, Industrial area, Agriculture, Rural, Farm, Indoor Space (Room), Pole (Arctic, Antarctic, Not sure), Ocean, Coast, Desert, Forest, Jungle, Other nature, Other space.
-    #type: Poster, Event invitation, Meme of climatechange, Infographic, Data visualization, Illustration, Text, Photo, Collage
-    #animals_kind: pets, farm animals, polar bears, land mammals, sea mammals, fish, amphibians, reptiles, invertabrates or birds
-    #consequences_kind: biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperature, human rights or economic consequence 
-    #climateactions_kind: protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel)
-
 """
-This file is for starting the models and modifying the prompts.
-To start a model the corresponding conda environment must be chosen. 
-The file works like this (Each step is a new start of the file).
-1. The main prompt gets executed on all videos of the dataset. The result get saved in the solution file. 
-2. The soltution file gets loaded. Depending one the result of the main prompt, the prompt animals, climateactions and consequences get executed. The result is saved in the same solution file.
-3. Prompt for consequences and setting get executed. This is independent from privous results and from each other. The result is saved in the same solution file.
-
-For the first prompt all duplicates get filtered. 
-Each row in the solution file has the corresponding video id with the saved results.
-Since every result gets immediately saved to the solution file, I have build a pick-up system that allows the code to pick up at the last saved result if e.g. the process gets interrupted.
+This file is used to classify based on the selected conda environment.
+The file allows to select different output paths.
+Beofre starting this file select an appropaite conda environment
 """
 
 # File paths
@@ -74,24 +60,34 @@ PROMPTS = {
 def main():
     print(f"Selected environment: {ENV_NAME}\n")
 
+    # Create solution file.
     if not os.path.exists(SOLUTION_PATH):
         pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv(SOLUTION_PATH, index=False)
 
-    # Select model based on environment
+    # Get model parameters and init the classification method
     model_params = select_model(ENV_NAME)
-    
-    
+
+    # Starting to classify
     print("Starting to classify")
     classify_model(*model_params)
     
-    #Process and Save the dataframe
+    #Process and sort the dataframe
     df = pd.read_csv(SOLUTION_PATH)
     df = process_dataframe(df)
     df.to_csv(SOLUTION_PATH, index=False)
 
 # Imports the needed functions for the model. Initializes the model and returns the classification method and init params
 # ENV_NAME: the selected environment. "Automatic" variable
-def select_model(ENV_NAME):
+def select_model(ENV_NAME: str):
+    """
+    Depending on the selected environment inits the model and classify method
+
+    Args:
+        ENV_NAME: Name of the environment
+
+    Return:
+        Parameters for the classification-method
+    """
     global classify
 
     if ENV_NAME == "videollava":
@@ -113,17 +109,35 @@ def select_model(ENV_NAME):
 
 # Process DataFrame (sorting and dropping extra columns)
 def process_dataframe(df):
+    """
+    Sorting a dataframe based on the video ids
+
+    Args:
+        df: Pandas Dataframe to sort.
+
+    Return:
+        Sorted pandas df
+    """
+
     df["date"] = pd.to_datetime(df["id"].str.split("_").str[-1])
     df["numeric_id"] = df["id"].str.split("_").str[1].astype(int)
     return df.sort_values(by=["date", "numeric_id"]).drop(columns=["date", "numeric_id"])
 
-# Classifies with the given classification method given by selectModel() and saves the result. Also it checks if a file has already been processed. This will work for all prompts
-# classify: classification method of the chosen model
-# *args:    args needed for the corresponding classification method of the chosen model
-#TODO: Subtopic prompt & result format
 def classify_model(*args):
+    """
+    Method used for using the different prompts on given videos.
+    First the main prompts are used. Then the x_kind prompts based on the answer from the first prompts. 
+    Everyanswer is formatted to fit in given categories.
+
+    Args:
+        *args: All input paramter needed for the classification method
+    
+    """
+
+    # Selecting all videos
     videos = glob.glob(f"{DATASET_PATH}/2019/01_January/*.mp4")
 
+    # Getting already processed video ids. 
     set_processed = set()
     for path in [DUPLICATES_PATH, EXCEPTION_PATH, SOLUTION_PATH]:
         if os.path.exists(path):
@@ -132,29 +146,32 @@ def classify_model(*args):
     start_time = time.time()
     total_files = len(videos)
     
+    # Prompts for the first rotation
     sel_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences", "setting", "type"]]
 
     for idx, video in enumerate(videos, 1):
         print("\n\n")
         id_string = video.split("/")[-1].split(".")[0]
+
+        # Skipping already processed videos
         if id_string in set_processed:
             continue
         
         try:
-            #Get all 
+            # Clearing cuda cache and getting first results
             torch.cuda.empty_cache()
             results = classify(video, sel_prompts, *args)
             print("Raw Result: ")
             print(results)
             
-            # Format results or try again
+            # Formatting every result and getting second round results for each kind of animals, climateaction and consequence
             for idx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
                 print("Prompt: " + prompt)
                 print("Resonse: " + response)
                 current_result = format_result(response, prompt)
                 print("Formatted: " + current_result)
 
-                # Asking for what kind it is
+                # Second round of results
                 if current_result in ["animals" , "climateactions", "consequences"]:
                     prompt_key = f"{current_result}_kind"
                     prompt_kind = PROMPTS[prompt_key]
@@ -175,7 +192,6 @@ def classify_model(*args):
             print(results)
             write_to_csv(SOLUTION_PATH, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results)
             
-
         except Exception as e:
 
             if not os.path.exists(EXCEPTION_PATH):
@@ -189,6 +205,17 @@ def classify_model(*args):
 
 
 def format_result(result: str, prompt: str):    
+    """ 
+    Based on the input it returns the categories by comparing the input to the corresponding map
+
+    Args:
+        result: A single result/answer string
+        prompt: The prompt used to get the result
+    
+    Return:
+        A string of all categories
+    """
+
     result_lower = result.lower().strip()
     result_lower = re.sub(r'<[^>]+>', '', result_lower)  # Remove HTML-like tags
 
@@ -294,18 +321,32 @@ def format_result(result: str, prompt: str):
     return "Unknown"
 
 def find_words(text, words_mapping):
+    """
+    Method to find words and based on what words are found returning a sting of categories
+
+    Args:
+        text: String of the text to look at
+        words_mapping: wordbank with search and return values
+
+    Return:
+        String of all categories divided by |
+    """
+
     matches = []
     for pattern, word in words_mapping.items():
         if re.search(pattern, text, re.IGNORECASE):
             matches.append(word)
-    return " | ".join(matches) if matches else "Unknown"
+    return "|".join(matches) if matches else "Unknown"
 
-
-# Appends a single row to a CSV file. Checks where to put the data based on the id
-# file_path:    File to append to.
-# columns:      Columns to append.
-# data:         data the columns are appended with. data[0] = id
 def write_to_csv(file_path, columns, data):
+    """
+    Appends a single row to a CSV file
+
+    Args: 
+        file_path:    File to append to.
+        columns:      Columns to append.
+        data:         data the columns are appended with. data[0] = id
+    """
     df = pd.read_csv(file_path)
     id_value = data[0]
     if id_value in df['id'].values:
@@ -317,8 +358,16 @@ def write_to_csv(file_path, columns, data):
     df.to_csv(file_path, index=False)
 
 
-# Prints progress updates
+
 def print_progress_status(processed_count, total_files, start_time):
+    """
+    Prints progress updates
+
+    Args:
+        processed_count: Files processed
+        total_files: Total number of files
+        start_time: Time when processing started
+    """
     elapsed_time = time.time() - start_time
     remaining_time = (elapsed_time / processed_count) * (total_files - processed_count) if processed_count else 0
     print(f"Processed {processed_count}/{total_files} ({processed_count/total_files:.1%}) | "
