@@ -1,3 +1,4 @@
-Analyze the video. If the video is about climateactions like for example
+Analyze the video. 
+If the video is about climateactions like for example
 protests, politics, sustainable energy (wind, solar, hydropower, biogas) or fossil energy (carbon, natural gas, oil, fossil fuel)
 answer with "Yes, ...". If the video is not about climateactions answer with "No, ...".

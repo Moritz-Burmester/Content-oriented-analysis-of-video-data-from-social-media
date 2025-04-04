@@ -1,3 +1,4 @@
-Analyze the video. If the video is about climate consequences like for example
+Analyze the video. 
+If the video is about climate consequences like for example
 biodeversity loss, covid, health, extrem weather (drough, flood, wildfire), melting ice, sea-level rise, rising temperatures, human rights or economic consequences 
 answer with "Yes, ...". If the video is not about climate consequences answer with "No, ...".
