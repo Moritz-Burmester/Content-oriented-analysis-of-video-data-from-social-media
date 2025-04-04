@@ -11,4 +11,4 @@ Analyze the video. What kind of animals are featured? Select from:
 10. Birds (e.g. eagles, owls, parrots, penguins)  
 11. Insects (e.g. ants, bees, butterflies)  
 12. Other animals (e.g. species not listed above)  
-Answer with only the relevant category numbers (e.g. "1, 5"). No extra words or explanations.  
+Answer with only the relevant category numbers. No extra words or explanations.  

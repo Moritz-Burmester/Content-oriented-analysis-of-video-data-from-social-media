@@ -12,4 +12,4 @@ Analyze the video. What kind of climate consequences is the video featuring? Sel
 11. Covid (e.g. corona crisis related) 
 12. Health (e.g. pandemics, health crises)
 13. Other consequence (e.g. consequences not listed above)
-Answer with only the relevant category numbers (e.g. "1, 5"). No extra words or explanations. 
+Answer with only the relevant category numbers. No extra words or explanations. 
