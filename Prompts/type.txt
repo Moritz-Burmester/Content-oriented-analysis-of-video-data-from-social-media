@@ -8,4 +8,4 @@ Analyze the video. What type of video is it? Select from:
 7. Single photo (e.g. individual photographs, may include text overlay)
 8. Photo collage (e.g. multiple combined images)
 9. Other type (e.g. types not listed above)
-Answer with only the relevant category numbers (e.g. "1, 5"). No extra words or explanations. 
+Answer with only the relevant category numbers. No extra words or explanations. 
