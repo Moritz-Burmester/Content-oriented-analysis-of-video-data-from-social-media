@@ -101,6 +101,10 @@ def select_model(ENV_NAME: str):
         from classification_videochatgpt import init_videochatgpt, classify_videochatgpt
         classify = classify_videochatgpt
         return init_videochatgpt()
+    elif ENV_NAME == "clip":
+        from classification_clip import init_clip, classify_clip
+        classify = classify_clip
+        return init_clip()
     else:
         print("Error: Cannot find the selected model")
         sys.exit(1)
@@ -134,6 +138,7 @@ def classify_model(*args):
     """
 
     # Selecting all videos
+    #TODO: Selecting previous videos from solution files
     videos = glob.glob(f"{DATASET_PATH}/2019/01_January/*.mp4")
 
     # Getting already processed video ids. 
@@ -147,15 +152,19 @@ def classify_model(*args):
     
     # Prompts for the first rotation
     sel_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences", "setting", "type"]]
+    if ENV_NAME == "clip":
+        sel_prompts = [PROMPTS[key] for key in ["animals_kind", "climateactions_kind", "consequences_kind", "setting", "type"]]
 
     for idx, video in enumerate(videos, 1):
-        print("\n\n")
+        
         id_string = video.split("/")[-1].split(".")[0]
 
         # Skipping already processed videos
         if id_string in set_processed:
             continue
         
+        print("\n\n")
+
         try:
             # Clearing cuda cache and getting first results
             torch.cuda.empty_cache()
@@ -165,30 +174,28 @@ def classify_model(*args):
             
             # Formatting every result and getting second round results for each kind of animals, climateaction and consequence
             for idx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
-                print("Prompt: " + prompt)
-                print("Resonse: " + response)
+
+                if ENV_NAME == "clip":
+                    break
+
                 current_result = format_result(response, prompt)
-                print("Formatted: " + current_result)
 
                 # Second round of results
                 if current_result in ["animals" , "climateactions", "consequences"]:
                     prompt_key = f"{current_result}_kind"
                     prompt_kind = PROMPTS[prompt_key]
-                    print("Prompt_Kind:" + prompt_key)
 
                     torch.cuda.empty_cache()
                     response_kind = classify(video, [prompt_kind], *args)[0]
-                    print("Response_kind: " + response_kind)
-
+   
                     current_result = format_result(response_kind, prompt_kind)
-                    print("Formatted_kind: " + current_result)
-
-                print("Final Result: " + current_result)
+            
                 results[idx] = current_result
                  
             # Get specific results
             print("Final Results: ")
             print(results)
+            #TODO: Word Bank Search
             write_to_csv(SOLUTION_PATH, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results)
             
         except Exception as e:
@@ -197,12 +204,12 @@ def classify_model(*args):
                 pd.DataFrame(columns=["id", "exception", "Stacktrace"]).to_csv(EXCEPTION_PATH, index=False)
 
             write_to_csv(EXCEPTION_PATH, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
-        
+        print(idx)
         # Timer for progress
         if idx % 25 == 0 or idx == total_files:
             print_progress_status(idx, total_files, start_time)
 
-
+#TODO: Word Bank Search
 def format_result(result: str, prompt: str):    
     """ 
     Based on the input it returns the categories by comparing the input to the corresponding map
@@ -230,7 +237,7 @@ def format_result(result: str, prompt: str):
             return prompt_categories[prompt]
         elif re.search(r'\bno\b', result_lower):
             return "No"
-        return "Unknown"
+        return "Failed Yes/No"
     
     # Handle detailed category prompts
     elif prompt == PROMPTS["animals_kind"]:
@@ -329,13 +336,18 @@ def find_words(text, words_mapping):
 
     Return:
         String of all categories divided by |
+        "ALL" if all categories got selected
+        "NO CLASS FOUND" if no category number got provided
     """
 
     matches = []
     for pattern, word in words_mapping.items():
         if re.search(pattern, text, re.IGNORECASE):
             matches.append(word)
-    return "|".join(matches) if matches else "Unknown"
+
+    if len(matches) == len(words_mapping):
+        return "ALL"
+    return "|".join(matches) if matches else "NO CLASS FOUND"
 
 def write_to_csv(file_path, columns, data):
     """
