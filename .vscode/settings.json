@@ -1,0 +1,5 @@
+{
+    "python.analysis.extraPaths": [
+        "./classification_clip",
+    ]
+}
