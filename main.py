@@ -138,8 +138,7 @@ def classify_model(*args):
     """
 
     # Selecting all videos
-    #TODO: Selecting previous videos from solution files
-    videos = glob.glob(f"{DATASET_PATH}/2019/01_January/*.mp4")
+    videos = glob.glob(f"{DATASET_PATH}/2019/*/*.mp4")
 
     # Getting already processed video ids. 
     set_processed = set()
@@ -156,6 +155,10 @@ def classify_model(*args):
         sel_prompts = [PROMPTS[key] for key in ["animals_kind", "climateactions_kind", "consequences_kind", "setting", "type"]]
 
     for idx, video in enumerate(videos, 1):
+
+        # Limit
+        if idx > 12001:
+            break
         
         id_string = video.split("/")[-1].split(".")[0]
 
@@ -163,22 +166,19 @@ def classify_model(*args):
         if id_string in set_processed:
             continue
         
-        print("\n\n")
-
         try:
             # Clearing cuda cache and getting first results
             torch.cuda.empty_cache()
             results = classify(video, sel_prompts, *args)
-            print("Raw Result: ")
-            print(results)
             
             # Formatting every result and getting second round results for each kind of animals, climateaction and consequence
-            for idx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
+            for jdx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
 
                 if ENV_NAME == "clip":
                     break
 
                 current_result = format_result(response, prompt)
+                #current_result = word_search(response, prompt)
 
                 # Second round of results
                 if current_result in ["animals" , "climateactions", "consequences"]:
@@ -189,13 +189,10 @@ def classify_model(*args):
                     response_kind = classify(video, [prompt_kind], *args)[0]
    
                     current_result = format_result(response_kind, prompt_kind)
+                    #current_result = word_search(response_kind, prompt_kind)
             
-                results[idx] = current_result
+                results[jdx] = current_result
                  
-            # Get specific results
-            print("Final Results: ")
-            print(results)
-            #TODO: Word Bank Search
             write_to_csv(SOLUTION_PATH, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results)
             
         except Exception as e:
@@ -204,12 +201,11 @@ def classify_model(*args):
                 pd.DataFrame(columns=["id", "exception", "Stacktrace"]).to_csv(EXCEPTION_PATH, index=False)
 
             write_to_csv(EXCEPTION_PATH, ["id", "exception", "Stacktrace"], [id_string, str(e), traceback.format_exc()])
-        print(idx)
+        
         # Timer for progress
         if idx % 25 == 0 or idx == total_files:
             print_progress_status(idx, total_files, start_time)
 
-#TODO: Word Bank Search
 def format_result(result: str, prompt: str):    
     """ 
     Based on the input it returns the categories by comparing the input to the corresponding map
@@ -223,7 +219,7 @@ def format_result(result: str, prompt: str):
     """
 
     result_lower = result.lower().strip()
-    result_lower = re.sub(r'<[^>]+>', '', result_lower)  # Remove HTML-like tags
+    result_lower = re.sub(r"<[^>]+>", "", result_lower)  # Remove HTML-like tags
 
     prompt_categories = {
         PROMPTS["animals"]: "animals",
@@ -233,9 +229,9 @@ def format_result(result: str, prompt: str):
 
     # Handle yes/no/unknown prompts
     if prompt in prompt_categories:
-        if re.search(r'\byes\b', result_lower):
+        if re.search(r"\byes\b", result_lower):
             return prompt_categories[prompt]
-        elif re.search(r'\bno\b', result_lower):
+        elif re.search(r"\bno\b", result_lower):
             return "No"
         return "Failed Yes/No"
     
@@ -272,7 +268,7 @@ def format_result(result: str, prompt: str):
             r"11": "Covid",
             r"12": "Health",
             r"13": "Other consequence"
-}
+        }
         return find_words(result_lower, consequences_map)
 
     elif prompt == PROMPTS["climateactions_kind"]:
@@ -349,6 +345,55 @@ def find_words(text, words_mapping):
         return "ALL"
     return "|".join(matches) if matches else "NO CLASS FOUND"
 
+def word_seach(result: str, prompt: str):
+    result_clean = result.lower().strip()
+    result_clean = re.sub(r"<[^>]+>", "", result_clean)  # Remove HTML-like tags
+    result_clean = re.sub(r"(not).*?(\.)", r"\1\2", result_clean) # Remove "not" to "."
+
+    prompt_categories = {
+        PROMPTS["animals"]: "animals",
+        PROMPTS["climateactions"]: "climateactions",
+        PROMPTS["consequences"]: "consequences"
+    }
+
+    # Handle yes/no/unknown prompts
+    if prompt in prompt_categories:
+        if re.search(r"\byes\b", result_clean):
+            return prompt_categories[prompt]
+        elif re.search(r"\bno\b", result_clean):
+            return "No"
+        return "Failed Yes/No"
+    
+    elif prompt == PROMPTS["animals_kind"]:
+        animals = ["Pets", "Farm animals", "Polar bears", "Land mammals", "Sea mammals", "Fish", "Amphibians", "Reptiles", "Invertebrates", "Birds", "Insects", "Other"]
+        wordbank = animals
+
+    elif prompt == PROMPTS["consequences_kind"]:
+        consequences = ["Floods", "Drought", "Wildfires", "Rising temperature", "Other extreme weather events", "Melting ice", "Sea level rise", "Human rights", "Economic consequences", "Biodiversity loss", "Covid", "Health", "Other consequence"]
+        wordbank = consequences
+
+    elif prompt == PROMPTS["climateactions_kind"]:
+        climate_actions = ["Politics", "Protests", "Solar energy", "Wind energy", "Hydropower", "Bioenergy", "Coal", "Oil", "Natural gas", "Other climate action"]
+        wordbank = climate_actions
+
+    elif prompt == PROMPTS["setting"]:
+        settings = [ "No setting", "Residential area", "Industrial area", "Commercial area", "Agricultural", "Rural", "Indoor space", "Arctic", "Antarctica", "Ocean", "Coastal", "Desert", "Forest", "Jungle", "Other nature", "Outer space", "Other setting"]
+        wordbank = settings
+
+    elif prompt == PROMPTS["type"]:
+        types = ["Event invitations", "Meme", "Infographic", "Data visualization", "Illustration", "Screenshot", "Single photo", "Photo collage", "Other type"]
+        wordbank = types
+    
+    found_words = []
+    for word in wordbank:
+        word_clean = word.lower()
+
+        pattern = r'\b' + re.escape(word_clean) + r'\b' 
+        if re.search(pattern, result):
+            found_words.append(word)
+    
+    return "|".join(found_words) if found_words else "NO CLASS FOUND"
+
 def write_to_csv(file_path, columns, data):
     """
     Appends a single row to a CSV file
@@ -360,15 +405,13 @@ def write_to_csv(file_path, columns, data):
     """
     df = pd.read_csv(file_path)
     id_value = data[0]
-    if id_value in df['id'].values:
-        df.loc[df['id'] == id_value, columns[1:]] = data[1:]
+    if id_value in df["id"].values:
+        df.loc[df["id"] == id_value, columns[1:]] = data[1:]
     else:
         new_row = pd.DataFrame([data], columns=columns)
         df = pd.concat([df, new_row], ignore_index=True)
 
     df.to_csv(file_path, index=False)
-
-
 
 def print_progress_status(processed_count, total_files, start_time):
     """
