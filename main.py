@@ -6,7 +6,7 @@ import pandas as pd
 import time
 import re
 import torch
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 """
 This file is used to classify based on the selected conda environment.
@@ -142,8 +142,12 @@ def classify_model(*args):
     
     """
 
-    # Selecting all videos
-    videos = glob.glob(f"{DATASET_PATH}/2019/*/*.mp4")
+    if os.path.exists("/work/mburmest/bachelorarbeit/Solution/clip_solution.csv"):
+        df = pd.read_csv("/work/mburmest/bachelorarbeit/Solution/clip_solution.csv")
+        id_strings = df['id'].astype(str).tolist()
+        videos = [id_to_path(s) for s in id_strings]
+    else:
+        videos = glob.glob(f"{DATASET_PATH}/*/*/*.mp4")
 
     # Getting already processed video ids. 
     set_processed = set()
@@ -184,7 +188,7 @@ def classify_model(*args):
                     break
 
                 current_result_1 = format_result(response, prompt)
-                current_result_2 = find_words(response, prompt)
+                current_result_2 = word_search(response, prompt)
 
                 # Second round of results_1
                 if current_result_1 in ["animals" , "climateactions", "consequences"]:
@@ -203,7 +207,7 @@ def classify_model(*args):
                     torch.cuda.empty_cache()
                     response_kind = classify(video, [prompt_kind], *args)[0]
    
-                    current_result_2 = find_words(response_kind, prompt_kind)
+                    current_result_2 = word_search(response_kind, prompt_kind)
             
                 results_1[jdx] = current_result_1
                 results_2[jdx] = current_result_2
@@ -221,6 +225,19 @@ def classify_model(*args):
         # Timer for progress
         if idx % 25 == 0 or idx == total_files:
             print_progress_status(idx, total_files, start_time)
+
+def id_to_path(video_id):
+    # Extract date part (after the last underscore)
+    date_str = video_id.split('_')[-1]
+    date_obj = datetime.strptime(date_str, '%Y-%m-%d')
+    
+    year = date_obj.year
+    month = date_obj.month
+    month_name = date_obj.strftime('%B')  # Full month name
+    
+    # Create the path
+    path = f"{DATASET_PATH}/{year}/{month:02d}_{month_name}/{video_id}.mp4"
+    return path
 
 def format_result(result: str, prompt: str):    
     """ 
@@ -361,7 +378,7 @@ def find_words(text, words_mapping):
         return "ALL"
     return "|".join(matches) if matches else "NO CLASS FOUND"
 
-def word_seach(result: str, prompt: str):
+def word_search(result: str, prompt: str):
     result_clean = result.lower().strip()
     result_clean = re.sub(r"<[^>]+>", "", result_clean)  # Remove HTML-like tags
     result_clean = re.sub(r"(not).*?(\.)", r"\1\2", result_clean) # Remove "not" to "."
