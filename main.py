@@ -18,7 +18,8 @@ Beofre starting this file select an appropaite conda environment
 DATASET_PATH = "/ceph/lprasse/ClimateVisions/Videos"
 DUPLICATES_PATH = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
 ENV_NAME = os.environ.get("CONDA_DEFAULT_ENV")
-SOLUTION_PATH = f"/work/mburmest/bachelorarbeit/Solution/{ENV_NAME}_solution.csv"
+SOLUTION_PATH_1 = f"/work/mburmest/bachelorarbeit/Solution/{ENV_NAME}_solution_1.csv"
+SOLUTION_PATH_2 = f"/work/mburmest/bachelorarbeit/Solution/{ENV_NAME}_solution_2.csv"
 EXCEPTION_PATH = f"/work/mburmest/bachelorarbeit/{ENV_NAME}_exception.csv"
 
 # Prompts
@@ -61,8 +62,11 @@ def main():
     print(f"Selected environment: {ENV_NAME}\n")
 
     # Create solution file.
-    if not os.path.exists(SOLUTION_PATH):
-        pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv(SOLUTION_PATH, index=False)
+    if not os.path.exists(SOLUTION_PATH_1):
+        pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv(SOLUTION_PATH_1, index=False)
+
+    if ENV_NAME in ["videollava", "videochatgpt", "pandagpt"] and not os.path.exists(SOLUTION_PATH_2):
+        pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv(SOLUTION_PATH_2, index=False)
 
     # Get model parameters and init the classification method
     model_params = select_model(ENV_NAME)
@@ -72,9 +76,10 @@ def main():
     classify_model(*model_params)
     
     #Process and sort the dataframe
-    df = pd.read_csv(SOLUTION_PATH)
-    df = process_dataframe(df)
-    df.to_csv(SOLUTION_PATH, index=False)
+    for path in [SOLUTION_PATH_1, SOLUTION_PATH_2]:
+        df = pd.read_csv(path)
+        df = process_dataframe(df)
+        df.to_csv(path, index=False)
 
 
 def select_model(ENV_NAME: str):
@@ -142,7 +147,7 @@ def classify_model(*args):
 
     # Getting already processed video ids. 
     set_processed = set()
-    for path in [DUPLICATES_PATH, EXCEPTION_PATH, SOLUTION_PATH]:
+    for path in [DUPLICATES_PATH, EXCEPTION_PATH, SOLUTION_PATH_1, SOLUTION_PATH_2]:
         if os.path.exists(path):
             set_processed.update(pd.read_csv(path, usecols=["id"])["id"].dropna())
 
@@ -169,31 +174,42 @@ def classify_model(*args):
         try:
             # Clearing cuda cache and getting first results
             torch.cuda.empty_cache()
-            results = classify(video, sel_prompts, *args)
+            results_1 = classify(video, sel_prompts, *args)
+            results_2 = results_1
             
             # Formatting every result and getting second round results for each kind of animals, climateaction and consequence
-            for jdx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
+            for jdx, (response, prompt) in enumerate(zip(results_1, sel_prompts), 0):
 
                 if ENV_NAME == "clip":
                     break
 
-                current_result = format_result(response, prompt)
-                #current_result = word_search(response, prompt)
+                current_result_1 = format_result(response, prompt)
+                current_result_2 = find_words(response, prompt)
 
-                # Second round of results
-                if current_result in ["animals" , "climateactions", "consequences"]:
-                    prompt_key = f"{current_result}_kind"
+                # Second round of results_1
+                if current_result_1 in ["animals" , "climateactions", "consequences"]:
+                    prompt_key = f"{current_result_1}_kind"
                     prompt_kind = PROMPTS[prompt_key]
 
                     torch.cuda.empty_cache()
                     response_kind = classify(video, [prompt_kind], *args)[0]
    
-                    current_result = format_result(response_kind, prompt_kind)
-                    #current_result = word_search(response_kind, prompt_kind)
+                    current_result_1 = format_result(response_kind, prompt_kind)
+                
+                if current_result_2 in ["animals" , "climateactions", "consequences"]:
+                    prompt_key = f"{current_result_2}_kind"
+                    prompt_kind = PROMPTS[prompt_key]
+
+                    torch.cuda.empty_cache()
+                    response_kind = classify(video, [prompt_kind], *args)[0]
+   
+                    current_result_2 = find_words(response_kind, prompt_kind)
             
-                results[jdx] = current_result
+                results_1[jdx] = current_result_1
+                results_2[jdx] = current_result_2
                  
-            write_to_csv(SOLUTION_PATH, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results)
+            write_to_csv(SOLUTION_PATH_1, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_1)
+            write_to_csv(SOLUTION_PATH_2, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_2)
             
         except Exception as e:
 
