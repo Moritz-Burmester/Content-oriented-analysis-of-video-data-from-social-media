@@ -159,16 +159,11 @@ def classify_model(*args):
     total_files = len(videos)
     
     # Prompts for the first rotation
-    sel_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences"]]
+    first_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences"]]
     if ENV_NAME == "clip":
-        sel_prompts = [PROMPTS[key] for key in ["animals_kind", "climateactions_kind", "consequences_kind", "setting", "type"]]
+        first_prompts = [PROMPTS[key] for key in ["animals_kind", "climateactions_kind", "consequences_kind", "setting", "type"]]
 
-    for idx, video in enumerate(videos, 1):
-
-        # Limit
-        if idx > 12001:
-            break
-        
+    for idx, video in enumerate(videos, 1):    
         id_string = video.split("/")[-1].split(".")[0]
 
         # Skipping already processed videos
@@ -177,14 +172,13 @@ def classify_model(*args):
         
         try:
             # Clearing cuda cache and getting first results
-            torch.cuda.empty_cache()
-            results = classify(video, sel_prompts, *args)
+            results = classify(video, first_prompts, *args)
 
             # Creating next round of results
-            sel_prompts = []
+            second_prompts = []
             no_index = []
             failed_index = []
-            for jdx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
+            for jdx, (response, prompt) in enumerate(zip(results, first_prompts), 0):
 
                 if ENV_NAME == "clip":
                     break
@@ -196,19 +190,23 @@ def classify_model(*args):
                 }
 
                 response_lower = response.lower()
+
+
                 if re.search(r"\byes\b", response_lower):
-                    sel_prompts.append(PROMPTS[f"{prompt_categories[prompt]}_kind"])
+                    second_prompts.append(PROMPTS[f"{prompt_categories[prompt]}_kind"])
                 elif re.search(r"\bno\b", response_lower):
                     no_index.append(jdx)
                 else:
                     failed_index.append(jdx)
             
-            torch.cuda.empty_cache()
-            results = classify(video, sel_prompts, *args)
+            second_prompts.append(PROMPTS["setting"])
+            second_prompts.append(PROMPTS["type"])
 
-            results_1 = format_result(results, sel_prompts, no_index, failed_index)
-            results_2 = word_search(results, sel_prompts, no_index, failed_index)
-                 
+            results = classify(video, second_prompts, *args)
+
+            results_1 = format_result(results, second_prompts, no_index, failed_index)
+            results_2 = word_search(results, second_prompts, no_index, failed_index)
+        
             write_to_csv(SOLUTION_PATH_1, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_1)
             write_to_csv(SOLUTION_PATH_2, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_2)
             
@@ -222,6 +220,8 @@ def classify_model(*args):
         # Timer for progress
         if idx % 25 == 0 or idx == total_files:
             print_progress_status(idx, total_files, start_time)
+        
+        torch.cuda.empty_cache()
 
 def id_to_path(video_id):
     # Extract date part (after the last underscore)
@@ -429,7 +429,7 @@ def write_to_csv(file_path, columns, data):
     if id_value in df["id"].values:
         df.loc[df["id"] == id_value, columns[1:]] = data[1:]
     else:
-        new_row = pd.DataFrame([data], columns=columns)
+        new_row = pd.DataFrame(data=[data], columns=columns)
         df = pd.concat([df, new_row], ignore_index=True)
 
     df.to_csv(file_path, index=False)

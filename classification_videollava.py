@@ -51,7 +51,6 @@ def classify_videollava(sel_video, prompts, *args):
     conv_mode = "llava_v1"
     
     for inp in prompts:
-        torch.cuda.empty_cache()
         # Create fresh conversation for each prompt
         conv = conv_templates[conv_mode].copy()
         

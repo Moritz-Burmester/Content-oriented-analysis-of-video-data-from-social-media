@@ -51,7 +51,6 @@ def classify_pandagpt(sel_video, prompts, *args):
     result = []
 
     for sel_prompt in prompts:
-        torch.cuda.empty_cache()
         response = model.generate({
             "prompt": sel_prompt,
             "image_paths":[],

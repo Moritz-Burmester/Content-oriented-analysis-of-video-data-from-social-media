@@ -55,7 +55,6 @@ def classify_videochatgpt(sel_video, prompts, *args):
 
     result = []
     for sel_prompt in prompts:
-        torch.cuda.empty_cache()
         # Create fresh conversation state for each prompt
         state = default_conversation.copy()
 
