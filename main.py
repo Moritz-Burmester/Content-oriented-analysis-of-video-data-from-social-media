@@ -159,7 +159,7 @@ def classify_model(*args):
     total_files = len(videos)
     
     # Prompts for the first rotation
-    sel_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences", "setting", "type"]]
+    sel_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences"]]
     if ENV_NAME == "clip":
         sel_prompts = [PROMPTS[key] for key in ["animals_kind", "climateactions_kind", "consequences_kind", "setting", "type"]]
 
@@ -178,39 +178,36 @@ def classify_model(*args):
         try:
             # Clearing cuda cache and getting first results
             torch.cuda.empty_cache()
-            results_1 = classify(video, sel_prompts, *args)
-            results_2 = results_1
-            
-            # Formatting every result and getting second round results for each kind of animals, climateaction and consequence
-            for jdx, (response, prompt) in enumerate(zip(results_1, sel_prompts), 0):
+            results = classify(video, sel_prompts, *args)
+
+            # Creating next round of results
+            sel_prompts = []
+            no_index = []
+            failed_index = []
+            for jdx, (response, prompt) in enumerate(zip(results, sel_prompts), 0):
 
                 if ENV_NAME == "clip":
                     break
 
-                current_result_1 = format_result(response, prompt)
-                current_result_2 = word_search(response, prompt)
+                prompt_categories = {
+                    PROMPTS["animals"]: "animals",
+                    PROMPTS["climateactions"]: "climateactions",
+                    PROMPTS["consequences"]: "consequences"
+                }
 
-                # Second round of results_1
-                if current_result_1 in ["animals" , "climateactions", "consequences"]:
-                    prompt_key = f"{current_result_1}_kind"
-                    prompt_kind = PROMPTS[prompt_key]
-
-                    torch.cuda.empty_cache()
-                    response_kind = classify(video, [prompt_kind], *args)[0]
-   
-                    current_result_1 = format_result(response_kind, prompt_kind)
-                
-                if current_result_2 in ["animals" , "climateactions", "consequences"]:
-                    prompt_key = f"{current_result_2}_kind"
-                    prompt_kind = PROMPTS[prompt_key]
-
-                    torch.cuda.empty_cache()
-                    response_kind = classify(video, [prompt_kind], *args)[0]
-   
-                    current_result_2 = word_search(response_kind, prompt_kind)
+                response_lower = response.lower()
+                if re.search(r"\byes\b", response_lower):
+                    sel_prompts.append(PROMPTS[f"{prompt_categories[prompt]}_kind"])
+                elif re.search(r"\bno\b", response_lower):
+                    no_index.append(jdx)
+                else:
+                    failed_index.append(jdx)
             
-                results_1[jdx] = current_result_1
-                results_2[jdx] = current_result_2
+            torch.cuda.empty_cache()
+            results = classify(video, sel_prompts, *args)
+
+            results_1 = format_result(results, sel_prompts, no_index, failed_index)
+            results_2 = word_search(results, sel_prompts, no_index, failed_index)
                  
             write_to_csv(SOLUTION_PATH_1, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_1)
             write_to_csv(SOLUTION_PATH_2, ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_2)
@@ -239,7 +236,7 @@ def id_to_path(video_id):
     path = f"{DATASET_PATH}/{year}/{month:02d}_{month_name}/{video_id}.mp4"
     return path
 
-def format_result(result: str, prompt: str):    
+def format_result(results: list, prompts: list, no_index: list, failed_index: list):    
     """ 
     Based on the input it returns the categories by comparing the input to the corresponding map
 
@@ -248,112 +245,106 @@ def format_result(result: str, prompt: str):
         prompt: The prompt used to get the result
     
     Return:
-        A string of all categories
+        A list for saving the results
     """
+    solution = []
+    for result, prompt in zip(results, prompts):
+        
+        result_lower = result.lower().strip()
+        result_lower = re.sub(r"<[^>]+>", "", result_lower)  # Remove HTML-like tags
+        
+        # Handle detailed category prompts
+        if prompt == PROMPTS["animals_kind"]:
+            animals_map = {
+                r"1": "Pets",   
+                r"2": "Farm Animals",   
+                r"3": "Polar Bears", 
+                r"4": "Land Mammals",   
+                r"5": "Sea Mammals", 
+                r"6": "Fish",  
+                r"7": "Amphibians",  
+                r"8": "Reptiles",  
+                r"9": "Invertebrates",   
+                r"10": "Birds", 
+                r"11": "Insects",
+                r"12": "Other Animals"  
+            }  
+            solution.append(find_words(result_lower, animals_map))
 
-    result_lower = result.lower().strip()
-    result_lower = re.sub(r"<[^>]+>", "", result_lower)  # Remove HTML-like tags
+        elif prompt == PROMPTS["consequences_kind"]:
+            consequences_map = {
+                r"1": "Floods",
+                r"2": "Drought",
+                r"3": "Wildfires",
+                r"4": "Rising temperature",
+                r"5": "Other extreme weather events",
+                r"6": "Melting Ice",
+                r"7": "Sea level rise",
+                r"8": "Human rights",
+                r"9": "Economic consequences",
+                r"10": "Biodiversity loss",
+                r"11": "Covid",
+                r"12": "Health",
+                r"13": "Other consequence"
+            }
+            solution.append(find_words(result_lower, consequences_map))
 
-    prompt_categories = {
-        PROMPTS["animals"]: "animals",
-        PROMPTS["climateactions"]: "climateactions",
-        PROMPTS["consequences"]: "consequences"
-    }
+        elif prompt == PROMPTS["climateactions_kind"]:
+            climateactions_map = {
+                r"1": "Politics",
+                r"2": "Protests",
+                r"3": "Solar energy",
+                r"4": "Wind energy",
+                r"5": "Hydropower",
+                r"6": "Bioenergy",
+                r"7": "Coal",
+                r"8": "Oil",
+                r"9": "Natural gas",
+                r"10": "Other climate action"
+            }
+            solution.append(find_words(result_lower, climateactions_map))
 
-    # Handle yes/no/unknown prompts
-    if prompt in prompt_categories:
-        if re.search(r"\byes\b", result_lower):
-            return prompt_categories[prompt]
-        elif re.search(r"\bno\b", result_lower):
-            return "No"
-        return "Failed Yes/No"
+        elif prompt == PROMPTS["setting"]:
+            setting_map = {
+                r"1": "No setting",
+                r"2": "Residential area",
+                r"3": "Industrial area", 
+                r"4": "Commercial area",
+                r"5": "Agricultural",
+                r"6": "Rural",
+                r"7": "Indoor space",
+                r"8": "Arctic, Antarctica",
+                r"9": "Ocean",
+                r"10": "coastal",
+                r"11": "Desert",
+                r"12": "Forest, jungle",
+                r"13": "Other Nature",
+                r"14": "Outer space",
+                r"15": "Other setting"
+            }
+            solution.append(find_words(result_lower, setting_map))
+
+        elif prompt == PROMPTS["type"]:
+            type_map = {
+                r"1": "Event invitations",
+                r"2": "Meme", 
+                r"3": "Infographic",
+                r"4": "Data visualization",
+                r"5": "Illustration",
+                r"6": "Screenshot",
+                r"7": "Single photo",
+                r"8": "Photo collage",
+                r"9": "Other type"
+            }
+            solution.append(find_words(result_lower, type_map))
+
+    for x in no_index:
+        solution.insert(x, "No")  
     
-    # Handle detailed category prompts
-    elif prompt == PROMPTS["animals_kind"]:
-        animals_map = {
-            r"1": "Pets",   
-            r"2": "Farm Animals",   
-            r"3": "Polar Bears", 
-            r"4": "Land Mammals",   
-            r"5": "Sea Mammals", 
-            r"6": "Fish",  
-            r"7": "Amphibians",  
-            r"8": "Reptiles",  
-            r"9": "Invertebrates",   
-            r"10": "Birds", 
-            r"11": "Insects",
-            r"12": "Other Animals"  
-        }  
-        return find_words(result_lower, animals_map)
+    for x in failed_index:
+        solution.insert(x, "FAILED YES/NO")  
 
-    elif prompt == PROMPTS["consequences_kind"]:
-        consequences_map = {
-            r"1": "Floods",
-            r"2": "Drought",
-            r"3": "Wildfires",
-            r"4": "Rising temperature",
-            r"5": "Other extreme weather events",
-            r"6": "Melting Ice",
-            r"7": "Sea level rise",
-            r"8": "Human rights",
-            r"9": "Economic consequences",
-            r"10": "Biodiversity loss",
-            r"11": "Covid",
-            r"12": "Health",
-            r"13": "Other consequence"
-        }
-        return find_words(result_lower, consequences_map)
-
-    elif prompt == PROMPTS["climateactions_kind"]:
-        climateactions_map = {
-            r"1": "Politics",
-            r"2": "Protests",
-            r"3": "Solar energy",
-            r"4": "Wind energy",
-            r"5": "Hydropower",
-            r"6": "Bioenergy",
-            r"7": "Coal",
-            r"8": "Oil",
-            r"9": "Natural gas",
-            r"10": "Other climate action"
-        }
-        return find_words(result_lower, climateactions_map)
-
-    elif prompt == PROMPTS["setting"]:
-        setting_map = {
-            r"1": "No setting",
-            r"2": "Residential area",
-            r"3": "Industrial area", 
-            r"4": "Commercial area",
-            r"5": "Agricultural",
-            r"6": "Rural",
-            r"7": "Indoor space",
-            r"8": "Arctic, Antarctica",
-            r"9": "Ocean",
-            r"10": "coastal",
-            r"11": "Desert",
-            r"12": "Forest, jungle",
-            r"13": "Other Nature",
-            r"14": "Outer space",
-            r"15": "Other setting"
-        }
-        return find_words(result_lower, setting_map)
-
-    elif prompt == PROMPTS["type"]:
-        type_map = {
-            r"1": "Event invitations",
-            r"2": "Meme", 
-            r"3": "Infographic",
-            r"4": "Data visualization",
-            r"5": "Illustration",
-            r"6": "Screenshot",
-            r"7": "Single photo",
-            r"8": "Photo collage",
-            r"9": "Other type"
-        }
-        return find_words(result_lower, type_map)
-    
-    return "Unknown"
+    return solution
 
 def find_words(text, words_mapping):
     """
@@ -378,54 +369,51 @@ def find_words(text, words_mapping):
         return "ALL"
     return "|".join(matches) if matches else "NO CLASS FOUND"
 
-def word_search(result: str, prompt: str):
-    result_clean = result.lower().strip()
-    result_clean = re.sub(r"<[^>]+>", "", result_clean)  # Remove HTML-like tags
-    result_clean = re.sub(r"(not).*?(\.)", r"\1\2", result_clean) # Remove "not" to "."
-
-    prompt_categories = {
-        PROMPTS["animals"]: "animals",
-        PROMPTS["climateactions"]: "climateactions",
-        PROMPTS["consequences"]: "consequences"
-    }
-
-    # Handle yes/no/unknown prompts
-    if prompt in prompt_categories:
-        if re.search(r"\byes\b", result_clean):
-            return prompt_categories[prompt]
-        elif re.search(r"\bno\b", result_clean):
-            return "No"
-        return "Failed Yes/No"
+def word_search(results: list, prompts: list, no_index: list, failed_index: list):
     
-    elif prompt == PROMPTS["animals_kind"]:
-        animals = ["Pets", "Farm animals", "Polar bears", "Land mammals", "Sea mammals", "Fish", "Amphibians", "Reptiles", "Invertebrates", "Birds", "Insects", "Other"]
-        wordbank = animals
+    solution = []
+    for result, prompt in zip(results, prompts):
+        result_clean = result.lower().strip()
+        result_clean = re.sub(r"<[^>]+>", "", result_clean)  # Remove HTML-like tags
+        result_clean = re.sub(r"(not).*?(\.)", r"\1\2", result_clean) # Remove "not" to "."
 
-    elif prompt == PROMPTS["consequences_kind"]:
-        consequences = ["Floods", "Drought", "Wildfires", "Rising temperature", "Other extreme weather events", "Melting ice", "Sea level rise", "Human rights", "Economic consequences", "Biodiversity loss", "Covid", "Health", "Other consequence"]
-        wordbank = consequences
+        if prompt == PROMPTS["animals_kind"]:
+            animals = ["Pets", "Farm animals", "Polar bears", "Land mammals", "Sea mammals", "Fish", "Amphibians", "Reptiles", "Invertebrates", "Birds", "Insects", "Other"]
+            wordbank = animals
 
-    elif prompt == PROMPTS["climateactions_kind"]:
-        climate_actions = ["Politics", "Protests", "Solar energy", "Wind energy", "Hydropower", "Bioenergy", "Coal", "Oil", "Natural gas", "Other climate action"]
-        wordbank = climate_actions
+        elif prompt == PROMPTS["consequences_kind"]:
+            consequences = ["Floods", "Drought", "Wildfires", "Rising temperature", "Other extreme weather events", "Melting ice", "Sea level rise", "Human rights", "Economic consequences", "Biodiversity loss", "Covid", "Health", "Other consequence"]
+            wordbank = consequences
 
-    elif prompt == PROMPTS["setting"]:
-        settings = [ "No setting", "Residential area", "Industrial area", "Commercial area", "Agricultural", "Rural", "Indoor space", "Arctic", "Antarctica", "Ocean", "Coastal", "Desert", "Forest", "Jungle", "Other nature", "Outer space", "Other setting"]
-        wordbank = settings
+        elif prompt == PROMPTS["climateactions_kind"]:
+            climate_actions = ["Politics", "Protests", "Solar energy", "Wind energy", "Hydropower", "Bioenergy", "Coal", "Oil", "Natural gas", "Other climate action"]
+            wordbank = climate_actions
 
-    elif prompt == PROMPTS["type"]:
-        types = ["Event invitations", "Meme", "Infographic", "Data visualization", "Illustration", "Screenshot", "Single photo", "Photo collage", "Other type"]
-        wordbank = types
+        elif prompt == PROMPTS["setting"]:
+            settings = [ "No setting", "Residential area", "Industrial area", "Commercial area", "Agricultural", "Rural", "Indoor space", "Arctic", "Antarctica", "Ocean", "Coastal", "Desert", "Forest", "Jungle", "Other nature", "Outer space", "Other setting"]
+            wordbank = settings
+
+        elif prompt == PROMPTS["type"]:
+            types = ["Event invitations", "Meme", "Infographic", "Data visualization", "Illustration", "Screenshot", "Single photo", "Photo collage", "Other type"]
+            wordbank = types
+        
+        found_words = []
+        for word in wordbank:
+            word_clean = word.lower()
+
+            pattern = r'\b' + re.escape(word_clean) + r'\b' 
+            if re.search(pattern, result):
+                found_words.append(word)
+        
+        solution.append("|".join(found_words) if found_words else "NO CLASS FOUND")
+
+    for x in no_index:
+        solution.insert(x, "No")  
     
-    found_words = []
-    for word in wordbank:
-        word_clean = word.lower()
+    for x in failed_index:
+        solution.insert(x, "FAILED YES/NO") 
 
-        pattern = r'\b' + re.escape(word_clean) + r'\b' 
-        if re.search(pattern, result):
-            found_words.append(word)
-    
-    return "|".join(found_words) if found_words else "NO CLASS FOUND"
+    return solution
 
 def write_to_csv(file_path, columns, data):
     """
