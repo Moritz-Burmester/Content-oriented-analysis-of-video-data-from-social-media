@@ -9,3 +9,7 @@ __pycache__/
 !/Duplicates_and_HashValues/
 
 cache_dir/
+
+*.out
+
+*.sh
