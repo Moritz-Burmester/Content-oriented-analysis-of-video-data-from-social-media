@@ -1,0 +1,450 @@
+id,exception,Stacktrace
+id_1169398341420994561_2019-09-04,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1170228051717656576_2019-09-07,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1171158164282068993_2019-09-09,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1174361667334918144_2019-09-18,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1176888039328690183_2019-09-25,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1177664004707061760_2019-09-27,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1177275017874366464_2019-09-26,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1178021337052397571_2019-09-28,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1178438956695851008_2019-09-29,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1190117228341055489_2019-11-01,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1190587816981516288_2019-11-02,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1190297567206281217_2019-11-01,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1190417783873572865_2019-11-01,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1192337496383741952_2019-11-07,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1192938772544942080_2019-11-08,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1192513991131705344_2019-11-07,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1193894013373423619_2019-11-11,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1193572010460241920_2019-11-10,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1193578442677276672_2019-11-10,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1193661027038007296_2019-11-10,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1194712324445220866_2019-11-13,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1193939677713055744_2019-11-11,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1194400275005526017_2019-11-12,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 210, in classify_model
+    write_to_csv(SOLUTION_PATH_1, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_1)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1195690509479448576_2019-11-16,No columns to parse from file,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 211, in classify_model
+    write_to_csv(SOLUTION_PATH_2, [""id"", ""animals"", ""climateactions"", ""consequences"", ""setting"", ""type""], [id_string] + results_2)
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 427, in write_to_csv
+    df = pd.read_csv(file_path)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1026, in read_csv
+    return _read(filepath_or_buffer, kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 620, in _read
+    parser = TextFileReader(filepath_or_buffer, **kwds)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1620, in __init__
+    self._engine = self._make_engine(f, self.engine)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/readers.py"", line 1898, in _make_engine
+    return mapping[engine](f, **self.options)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/pandas/io/parsers/c_parser_wrapper.py"", line 93, in __init__
+    self._reader = parsers.TextReader(src, **kwds)
+  File ""parsers.pyx"", line 581, in pandas._libs.parsers.TextReader.__cinit__
+pandas.errors.EmptyDataError: No columns to parse from file
+"
+id_1198963606026625024_2019-11-25,[12:07:44] /github/workspace/src/runtime/ndarray.cc:171: Check failed: from_size == to_size (20736 vs. 15552) DECORDArrayCopyFromTo: The size must exactly match,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 175, in classify_model
+    results = classify(video, first_prompts, *args)
+  File ""/work/mburmest/bachelorarbeit/classification_videochatgpt.py"", line 54, in classify_videochatgpt
+    chat.upload_video(sel_video, img_list)
+  File ""/work/mburmest/bachelorarbeit/Video_ChatGPT/video_chatgpt/demo/chat.py"", line 46, in upload_video
+    frames = load_video(video)
+  File ""/work/mburmest/bachelorarbeit/Video_ChatGPT/video_chatgpt/eval/model_utils.py"", line 37, in load_video
+    img_array = vr.get_batch(frame_idx).asnumpy()
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/decord/video_reader.py"", line 175, in get_batch
+    arr = _CAPI_VideoReaderGetBatch(self._handle, indices)
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/decord/_ffi/_ctypes/function.py"", line 173, in __call__
+    check_call(_LIB.DECORDFuncCall(
+  File ""/home/mburmest/miniconda3/envs/videochatgpt/lib/python3.10/site-packages/decord/_ffi/base.py"", line 78, in check_call
+    raise DECORDError(err_str)
+decord._ffi.base.DECORDError: [12:07:44] /github/workspace/src/runtime/ndarray.cc:171: Check failed: from_size == to_size (20736 vs. 15552) DECORDArrayCopyFromTo: The size must exactly match
+"

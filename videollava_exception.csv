@@ -1,0 +1,20 @@
+id,exception,Stacktrace
+id_1198963606026625024_2019-11-25,[08:21:13] /github/workspace/src/runtime/ndarray.cc:171: Check failed: from_size == to_size (20736 vs. 15552) DECORDArrayCopyFromTo: The size must exactly match,"Traceback (most recent call last):
+  File ""/work/mburmest/bachelorarbeit/main.py"", line 175, in classify_model
+    results = classify(video, first_prompts, *args)
+  File ""/work/mburmest/bachelorarbeit/classification_videollava.py"", line 44, in classify_videollava
+    video_tensor = video_processor(sel_video, return_tensors='pt')['pixel_values']
+  File ""/work/mburmest/bachelorarbeit/Video_LLaVA/videollava/model/multimodal_encoder/languagebind/video/processing_video.py"", line 137, in __call__
+    image_features = [self.image_processor(image, self.transform,
+  File ""/work/mburmest/bachelorarbeit/Video_LLaVA/videollava/model/multimodal_encoder/languagebind/video/processing_video.py"", line 137, in <listcomp>
+    image_features = [self.image_processor(image, self.transform,
+  File ""/work/mburmest/bachelorarbeit/Video_LLaVA/videollava/model/multimodal_encoder/languagebind/video/processing_video.py"", line 94, in load_and_transform_video
+    video_data = decord_vr.get_batch(frame_id_list)
+  File ""/home/mburmest/miniconda3/envs/videollava/lib/python3.10/site-packages/decord/video_reader.py"", line 175, in get_batch
+    arr = _CAPI_VideoReaderGetBatch(self._handle, indices)
+  File ""/home/mburmest/miniconda3/envs/videollava/lib/python3.10/site-packages/decord/_ffi/_ctypes/function.py"", line 173, in __call__
+    check_call(_LIB.DECORDFuncCall(
+  File ""/home/mburmest/miniconda3/envs/videollava/lib/python3.10/site-packages/decord/_ffi/base.py"", line 78, in check_call
+    raise DECORDError(err_str)
+decord._ffi.base.DECORDError: [08:21:13] /github/workspace/src/runtime/ndarray.cc:171: Check failed: from_size == to_size (20736 vs. 15552) DECORDArrayCopyFromTo: The size must exactly match
+"
