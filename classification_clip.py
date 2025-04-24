@@ -79,8 +79,6 @@ def format_prompt(prompt:str):
     # Clean and return (preserve original capitalization)
     return categories
 
-#TODO: No duplicates in result
-
 #"word1" or "No" or "word1|word2"
 # Categories for the list in a prompt
 def format_result(prompt_categories, probabilities, no_allowed):

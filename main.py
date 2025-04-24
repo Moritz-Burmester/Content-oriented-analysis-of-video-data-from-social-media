@@ -390,7 +390,7 @@ def word_search(results: list, prompts: list, no_index: list, failed_index: list
             wordbank = climate_actions
 
         elif prompt == PROMPTS["setting"]:
-            settings = [ "No setting", "Residential area", "Industrial area", "Commercial area", "Agricultural", "Rural", "Indoor space", "Arctic", "Antarctica", "Ocean", "Coastal", "Desert", "Forest", "Jungle", "Other nature", "Outer space", "Other setting"]
+            settings = ["No setting", "Residential area", "Industrial area", "Commercial area", "Agricultural", "Rural", "Indoor space", "Arctic", "Antarctica", "Ocean", "Coastal", "Desert", "Forest", "Jungle", "Other nature", "Outer space", "Other setting"]
             wordbank = settings
 
         elif prompt == PROMPTS["type"]:

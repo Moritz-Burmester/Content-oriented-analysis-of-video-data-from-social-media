@@ -63,5 +63,5 @@ def classify_pandagpt(sel_video, prompts, *args):
             "modality_embeds": []
             })
         result.append(response)
-    
+        torch.cuda.empty_cache()
     return result
