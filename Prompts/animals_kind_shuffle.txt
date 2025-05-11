@@ -1,0 +1,15 @@
+Analyze the video. What kind of animals are featured? Select from the classes 1 to 12:
+1: Amphibians (e.g. frogs, toads, salamanders);
+2: Invertebrates (e.g. spiders, worms, snails);
+3: Birds (e.g. eagles, owls, parrots, penguins);
+4: Fish/Non-mammal sea life (e.g. fish, jellyfish, crabs, lobsters);
+5: Reptiles (e.g. snakes, lizards, turtles, crocodiles);
+6: Pets (e.g. dogs, cats, guinea pigs, horses, bunnies, canaries);
+7: Polar bears;
+8: Other animals (no pets, farm animals, polar bears, land or sea mammals, fish, amphibians, reptiles, invertebrates, birds or insects);
+9: Sea mammals (e.g. whales, dolphins, seals, walruses - excludes polar bears and penguins);
+10: Land mammals (e.g. lions, tigers, elephants, giraffes, deer, wolves, bears);
+11: Insects (e.g. ants, bees, butterflies);
+12: Farm animals (e.g. cattle, pigs, chickens, sheep, goats);
+Answer with only the class-number of the relevant categories. No extra words or explanations.
+Before answering check if your answer contains the class-number of the category.

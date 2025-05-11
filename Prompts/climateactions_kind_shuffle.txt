@@ -1,0 +1,13 @@
+Analyze the video. What kind of climate actions is the video featuring? Select from the classes 1 to 10:
+1: Natural gas (e.g. fracking, gas power plants);
+2: Wind energy (e.g. wind turbines, wind farms);
+3: Other climate action (no politics, protest, solar energy, wind energy, hydropower, bioenergy, coal or natural gas);
+4: Politics (e.g. COP conferences, climate summits, policy meetings);
+5: Coal (e.g. coal mines, coal power plants);
+6: Solar energy (e.g. solar panels, solar farms);
+7: Oil (e.g. oil rigs, oil pipelines);
+8: Hydropower (e.g. hydroelectric dams, tidal energy);
+9: Bioenergy (e.g. biogas, biomass plants);
+10: Protests (e.g. climate marches, Fridays for Future, Extinction Rebellion);
+Answer with only the class-number of the relevant categories. No extra words or explanations.
+Before answering check if your answer contains the class-number of the category.

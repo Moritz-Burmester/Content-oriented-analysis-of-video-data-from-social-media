@@ -1,0 +1,12 @@
+Analyze the video. What type of video is it? Select from the classes 1 to 9:
+1: Meme (e.g. humorous/satirical image-text combinations);
+2: Other type (no event inivitation, meme, infographic, data visualization, illustration, screenshot, single photo or photo collage);
+3: Photo collage (e.g. multiple combined images);
+4: Illustration (e.g. drawings, paintings, cartoons);
+5: Data visualization (e.g. graphs, charts, detailed data maps);
+6: Event invitations (e.g. event ads, promotional materials);
+7: Screenshot (e.g. captured text, news articles, social media posts);
+8: Infographic (e.g. visual overviews with minimal text);
+9: Single photo (e.g. individual photographs, may include text overlay);
+Answer with only the class-number of the relevant categories. No extra words or explanations.
+Before answering check if your answer contains the class-number of the category.

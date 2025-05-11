@@ -47,15 +47,35 @@ with open("Prompts/setting.txt", "r") as file:
 with open("Prompts/type.txt", "r") as file:
     videotype = file.read()
 
+with open("Prompts/animals_kind_shuffle.txt", "r") as file:
+        animals_shuffle = file.read()
+
+with open("Prompts/climateactions_kind_shuffle.txt", "r") as file:
+    climateactions_shuffle = file.read()
+
+with open("Prompts/consequences_kind_shuffle.txt", "r") as file:
+    consequences_shuffle = file.read()
+
+with open("Prompts/setting_shuffle.txt", "r") as file:
+    setting_shuffle = file.read()
+
+with open("Prompts/type_shuffle.txt", "r") as file:
+    type_shuffle = file.read()
+
 PROMPTS = {
-    "animals":              animals,
-    "animals_kind":         animals_kind,
-    "climateactions":       climateactions,
-    "climateactions_kind":  climateactions_kind,
-    "consequences":         consequences,
-    "consequences_kind":    consequences_kind,
-    "setting":              setting,
-    "type":                 videotype
+    "animals":                  animals,
+    "animals_kind":             animals_kind,
+    "animals_shuffle":          animals_shuffle,
+    "climateactions":           climateactions,
+    "climateactions_kind":      climateactions_kind,
+    "climateactions_shuffle":   climateactions_shuffle,
+    "consequences":             consequences,
+    "consequences_kind":        consequences_kind,
+    "consequences_shuffle":     consequences_shuffle,
+    "setting":                  setting,
+    "setting_shuffle":          setting_shuffle,
+    "type":                     videotype,
+    "type_shuffle":             type_shuffle
 }
 
 def main():
@@ -73,7 +93,8 @@ def main():
 
     # Starting to classify
     print("Starting to classify")
-    classify_model(*model_params)
+    classify_model_fixed_ids(*model_params)
+    #classify_model(*model_params)
     
     #Process and sort the dataframe
     for path in [SOLUTION_PATH_1, SOLUTION_PATH_2]:
@@ -142,6 +163,7 @@ def classify_model(*args):
     
     """
 
+    # Selecting what videos to process
     if os.path.exists("/work/mburmest/bachelorarbeit/Solution/clip_solution.csv"):
         df = pd.read_csv("/work/mburmest/bachelorarbeit/Solution/clip_solution.csv")
         id_strings = df['id'].astype(str).tolist()
@@ -223,6 +245,52 @@ def classify_model(*args):
         
         torch.cuda.empty_cache()
 
+def classify_model_fixed_ids(*args):
+    if not os.path.exists("/work/mburmest/bachelorarbeit/Solution/videollava_solution_1000.csv"):
+        pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv("/work/mburmest/bachelorarbeit/Solution/videollava_solution_1000.csv", index=False)
+
+
+    df = pd.read_csv("/work/mburmest/bachelorarbeit/random_ids_by_year.csv")
+    id_strings = df['id'].astype(str).tolist()
+    videos = [id_to_path(s) for s in id_strings]
+    first_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences"]]
+
+    for video in videos:    
+        torch.cuda.empty_cache()
+        id_string = video.split("/")[-1].split(".")[0]
+
+        results = classify(video, first_prompts, *args)
+
+            # Creating next round of results
+        second_prompts = []
+        no_index = []
+        failed_index = []
+        for jdx, (response, prompt) in enumerate(zip(results, first_prompts), 0):
+
+            prompt_categories = {
+                PROMPTS["animals"]: "animals",
+                PROMPTS["climateactions"]: "climateactions",
+                PROMPTS["consequences"]: "consequences"
+            }
+
+            response_lower = response.lower()
+
+            if re.search(r"\byes\b", response_lower):
+                second_prompts.append(PROMPTS[f"{prompt_categories[prompt]}_shuffle"])
+            elif re.search(r"\bno\b", response_lower):
+                no_index.append(jdx)
+            else:
+                failed_index.append(jdx)
+            
+        second_prompts.append(setting_shuffle)
+        second_prompts.append(type_shuffle)
+     
+        results = classify(video, second_prompts, *args)
+        
+        results_1 = format_result_shuffle(results, second_prompts, no_index, failed_index)
+
+        write_to_csv("/work/mburmest/bachelorarbeit/Solution/videollava_solution_1000.csv", ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_1)
+
 def id_to_path(video_id):
     # Extract date part (after the last underscore)
     date_str = video_id.split('_')[-1]
@@ -276,16 +344,16 @@ def format_result(results: list, prompts: list, no_index: list, failed_index: li
                 r"1": "Floods",
                 r"2": "Drought",
                 r"3": "Wildfires",
-                r"4": "Rising temperature",
-                r"5": "Other extreme weather events",
+                r"4": "Rising Temperature",
+                r"5": "Other Extreme Weather Events",
                 r"6": "Melting Ice",
-                r"7": "Sea level rise",
-                r"8": "Human rights",
-                r"9": "Economic consequences",
-                r"10": "Biodiversity loss",
+                r"7": "Sea Level Rise",
+                r"8": "Human Rights",
+                r"9": "Economic Consequences",
+                r"10": "Biodiversity Loss",
                 r"11": "Covid",
                 r"12": "Health",
-                r"13": "Other consequence"
+                r"13": "Other Consequence"
             }
             solution.append(find_words(result_lower, consequences_map))
 
@@ -293,29 +361,29 @@ def format_result(results: list, prompts: list, no_index: list, failed_index: li
             climateactions_map = {
                 r"1": "Politics",
                 r"2": "Protests",
-                r"3": "Solar energy",
-                r"4": "Wind energy",
+                r"3": "Solar Energy",
+                r"4": "Wind Energy",
                 r"5": "Hydropower",
                 r"6": "Bioenergy",
                 r"7": "Coal",
                 r"8": "Oil",
-                r"9": "Natural gas",
-                r"10": "Other climate action"
+                r"9": "Natural Gas",
+                r"10": "Other Climate Action"
             }
             solution.append(find_words(result_lower, climateactions_map))
 
         elif prompt == PROMPTS["setting"]:
             setting_map = {
-                r"1": "No setting",
-                r"2": "Residential area",
-                r"3": "Industrial area", 
-                r"4": "Commercial area",
+                r"1": "No Setting",
+                r"2": "Residential Area",
+                r"3": "Industrial Area", 
+                r"4": "Commercial Area",
                 r"5": "Agricultural",
                 r"6": "Rural",
-                r"7": "Indoor space",
+                r"7": "Indoor Space",
                 r"8": "Arctic, Antarctica",
                 r"9": "Ocean",
-                r"10": "coastal",
+                r"10": "Coastal",
                 r"11": "Desert",
                 r"12": "Forest, jungle",
                 r"13": "Other Nature",
@@ -326,15 +394,15 @@ def format_result(results: list, prompts: list, no_index: list, failed_index: li
 
         elif prompt == PROMPTS["type"]:
             type_map = {
-                r"1": "Event invitations",
+                r"1": "Event Invitations",
                 r"2": "Meme", 
                 r"3": "Infographic",
-                r"4": "Data visualization",
+                r"4": "Data Visualization",
                 r"5": "Illustration",
                 r"6": "Screenshot",
-                r"7": "Single photo",
-                r"8": "Photo collage",
-                r"9": "Other type"
+                r"7": "Single Photo",
+                r"8": "Photo Collage",
+                r"9": "Other Type"
             }
             solution.append(find_words(result_lower, type_map))
 
@@ -342,7 +410,117 @@ def format_result(results: list, prompts: list, no_index: list, failed_index: li
         solution.insert(x, "No")  
     
     for x in failed_index:
-        solution.insert(x, "FAILED YES/NO")  
+        solution.insert(x, "Failed Yes/No")  
+
+    return solution
+
+def format_result_shuffle(results: list, prompts: list, no_index: list, failed_index: list):    
+    """ 
+    Based on the input it returns the categories by comparing the input to the corresponding map
+
+    Args:
+        result: A single result/answer string
+        prompt: The prompt used to get the result
+    
+    Return:
+        A list for saving the results
+    """
+    solution = []
+    for result, prompt in zip(results, prompts):
+        
+        result_lower = result.lower().strip()
+        result_lower = re.sub(r"<[^>]+>", "", result_lower)  # Remove HTML-like tags
+        
+        # Handle detailed category prompts
+        if prompt == PROMPTS["animals_shuffle"]:
+            animals_map = {
+                r"1": "Amphibians",
+                r"2": "Invertebrates",
+                r"3": "Birds",
+                r"4": "Fish",
+                r"5": "Reptiles",
+                r"6": "Pets",
+                r"7": "Polar Bears",
+                r"8": "Other Animals",
+                r"9": "Sea Mammals",
+                r"10": "Land Mammals",
+                r"11": "Insects",
+                r"12": "Farm Animals" 
+            }  
+            solution.append(find_words(result_lower, animals_map))
+
+        elif prompt == PROMPTS["consequences_shuffle"]:
+            consequences_map = {
+                r"1": "Covid",
+                r"2": "Other Extreme Weather Events",
+                r"3": "Economic Consequences",
+                r"4": "Sea Level Rise",
+                r"5": "Health",
+                r"6": "Human Rights",
+                r"7": "Wildfires",
+                r"8": "Rising Temperature",
+                r"9": "Drought",
+                r"10": "Other Consequence",
+                r"11": "Biodiversity Loss",
+                r"12": "Melting Ice",
+                r"13": "Floods"
+            }
+            solution.append(find_words(result_lower, consequences_map))
+
+        elif prompt == PROMPTS["climateactions_shuffle"]:
+            climateactions_map = {
+                r"1": "Natural Gas",
+                r"2": "Wind Energy",
+                r"3": "Other Climate Action",
+                r"4": "Politics",
+                r"5": "Coal",
+                r"6": "Solar Energy",
+                r"7": "Oil",
+                r"8": "Hydropower",
+                r"9": "Bioenergy",
+                r"10": "Protests"
+            }
+            solution.append(find_words(result_lower, climateactions_map))
+
+        elif prompt == PROMPTS["setting_shuffle"]:
+            setting_map = {
+                r"1": "Forest, Jungle",
+                r"2": "Arctic, Antarctica",
+                r"3": "Other Setting",
+                r"4": "Indoor Space",
+                r"5": "Agricultural",
+                r"6": "Outer Space",
+                r"7": "Ocean",
+                r"8": "Residential Area",
+                r"9": "Rural",
+                r"10": "Other Nature",
+                r"11": "No Setting",
+                r"12": "Coastal",
+                r"13": "Industrial Area",
+                r"14": "Commercial Area",
+                r"15": "Desert"
+            }
+            solution.append(find_words(result_lower, setting_map))
+
+        elif prompt == PROMPTS["type_shuffle"]:
+            type_map = {
+                r"1": "Meme",
+                r"2": "Other Type",
+                r"3": "Photo Collage",
+                r"4": "Illustration",
+                r"5": "Data Visualization",
+                r"6": "Event Invitations",
+                r"7": "Screenshot",
+                r"8": "Infographic",
+                r"9": "Single Photo"
+            }
+            solution.append(find_words(result_lower, type_map))
+
+    for x in no_index:
+        solution.insert(x, "No")  
+    
+    for x in failed_index:
+        solution.insert(x, "Failed Yes/No")  
 
     return solution
 
