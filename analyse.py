@@ -1,3 +1,4 @@
+import datetime
 import pandas as pd
 import re
 from collections import defaultdict
@@ -54,19 +55,45 @@ settings = ["No setting", "Residential area", "Industrial area", "Commercial are
 types = ["Event invitations", "Meme", "Infographic", "Data visualization", "Illustration", "Screenshot", "Single photo", "Photo collage", "Other type", "No", "FAILED YES/NO", "NO CLASS FOUND"]
 """
 
+def same_subset(paths):
+    common_ids = None
+
+    for file in paths:
+        df = pd.read_csv(file)
+        current_ids = set(df["id"].unique())
+        
+        if common_ids is None:
+            common_ids = current_ids
+        else:
+            common_ids &= current_ids  # Intersection update
+            
+    print(f"Final number of common IDs: {len(common_ids)}")
+
+
+    for file in paths:
+        # Read entire file
+        df = pd.read_csv(file)
+        
+        # Filter to only keep rows with common IDs
+        filtered_df = df[df["id"].isin(common_ids)]
+        
+        # Overwrite original file
+        filtered_df.to_csv(file, index=False)
+        print(f"Overwritten {file} - now contains {len(filtered_df)} rows")
+
 def correct_spelling(path):
     def capitalize_words(text):
         if pd.isna(text):  # Skip NaN values
             return text
         # Process each part separated by |
-        parts = str(text).split('|')
+        parts = str(text).split("|")
         capitalized_parts = []
         for part in parts:
             # Capitalize each word in the part
-            capitalized_part = ' '.join(word.capitalize() for word in part.split())
+            capitalized_part = " ".join(word.capitalize() for word in part.split())
             capitalized_parts.append(capitalized_part)
         # Rejoin with | separator
-        return '|'.join(capitalized_parts)
+        return "|".join(capitalized_parts)
 
     df = pd.read_csv(path)
     df = df.map(capitalize_words)
@@ -81,9 +108,9 @@ def fix_animals_column(df):
     def replace_other(cell):
         if pd.isna(cell):
             return cell
-        parts = [p.strip() for p in str(cell).split('|')]
+        parts = [p.strip() for p in str(cell).split("|")]
         parts = ["Other Animals" if p == "Other" else p for p in parts]
-        return '|'.join(parts)
+        return "|".join(parts)
 
     df["animals"] = df["animals"].apply(replace_other)
     return df
@@ -92,13 +119,13 @@ def merge_categories(df):
     def fix_setting(cell):
         if pd.isna(cell):
             return cell
-        parts = [p.strip() for p in str(cell).split('|')]
+        parts = [p.strip() for p in str(cell).split("|")]
         if "Forest" not in parts and "Jungle" not in parts:
-            return '|'.join(parts)
+            return "|".join(parts)
         # Remove both if either is present, then add combined
         parts = [p for p in parts if p not in {"Forest", "Jungle"}]
         parts.append("Forest, Jungle")
-        return '|'.join(parts)
+        return "|".join(parts)
 
     df["setting"] = df["setting"].apply(fix_setting)
     return df
@@ -143,52 +170,85 @@ def visualize(path):
         counts = category_counts.values
         percents = category_percents.values
 
-        bars = ax1.bar(x, counts, color='teal', label='Count')
+        bars = ax1.bar(x, counts, color="teal", label="Count")
         ax1.set_ylabel("Count")
         ax1.set_title(f"{name} - {category} (Count & Percentage Labels)")
-        ax1.grid(axis='y', linestyle='--', alpha=0.7)
+        ax1.grid(axis="y", linestyle="--", alpha=0.7)
 
         # Rotate x-tick labels
         ax1.set_xticks(range(len(x)))
-        ax1.set_xticklabels(x, rotation=45, ha='right')
+        ax1.set_xticklabels(x, rotation=45, ha="right")
 
         # Annotate bars with count + percentage
         for i, (bar, pct) in enumerate(zip(bars, percents)):
             height = bar.get_height()
             ax1.text(bar.get_x() + bar.get_width() / 2., height,
-                    f"{height:,}\n({pct}%)", ha='center', va='bottom', fontsize=8)
+                    f"{height:,}\n({pct}%)", ha="center", va="bottom", fontsize=8)
 
         #fig.tight_layout()
-        plt.savefig(f"{output_path}{name}_{category}_combined_analysis.png", bbox_inches='tight', dpi=300)
+        plt.savefig(f"{output_path}{name}_{category}_combined_analysis.png", bbox_inches="tight", dpi=300)
         plt.close()
 
-    # GROUPED BAR PLOTS: Compare all datasets for each category
-    for category in PLOT_COLS:
-        fig, ax = plt.subplots(figsize=(14, 7))
-        category_dict = all_data[category]
+def combined_bar_charts(csv_paths):
+    PLOT_COLS = ["animals", "climateactions", "consequences", "setting", "type"]
+    
+    all_data = {col: defaultdict(dict) for col in PLOT_COLS}
+    dfs = [pd.read_csv(path) for path in csv_paths]
+    names = [path.split("/")[-1].split(".")[0] for path in csv_paths]
 
-        subcategories = list(category_dict.keys())
-        datasets = sorted({ds for subcat in category_dict.values() for ds in subcat})
-        n_datasets = len(datasets)
-        bar_width = 0.8 / n_datasets
-        x = range(len(subcategories))
+    for column in PLOT_COLS:
+        category_counts_per_file = []
+        all_categories = set()
 
-        for i, dataset in enumerate(datasets):
-            values = [category_dict[subcat].get(dataset, 0) for subcat in subcategories]
-            bar_positions = [pos + i * bar_width for pos in x]
-            ax.bar(bar_positions, values, width=bar_width, label=dataset)
+        # Collect counts and all unique categories
+        for df in dfs:
+            col_data = df[column].dropna().astype(str).str.split("|").explode().str.strip()
+            counts = col_data.value_counts()
+            category_counts_per_file.append(counts)
+            all_categories.update(counts.index)
 
-        ax.set_title(f"{category} Comparison Across Datasets")
-        ax.set_xticks([pos + bar_width * (n_datasets / 2 - 0.5) for pos in x])
-        ax.set_xticklabels(subcategories, rotation=45, ha='right')
+        all_categories = sorted(all_categories)
+        data_matrix = []
+
+        # Build a matrix with counts per file per category
+        for counts in category_counts_per_file:
+            row = [counts.get(cat, 0) for cat in all_categories]
+            data_matrix.append(row)
+
+        # Transpose for plotting
+        data = np.array(data_matrix)
+        x = np.arange(len(all_categories))
+        width = 0.8 / len(dfs)  # width per bar
+
+        fig, ax = plt.subplots(figsize=(18, 7))
+        for i, file_counts in enumerate(data):
+            bar = ax.bar(x + i * width, file_counts, width, label=names[i])
+
+            # 🔧 Count + Percentage label — editable section
+            total = sum(file_counts)
+            for idx, height in enumerate(file_counts):
+                percent = (height / total * 100) if total > 0 else 0
+                ax.text(
+                    x[idx] + i * width,
+                    height,
+                    f"{int(height)}\n({percent:.1f}%)",
+                    ha="center",
+                    va="bottom",
+                    fontsize=8,
+                    rotation=0,
+                )
+            # End editable section
+
+        ax.set_title(f"Distribution of categories in column: {column}")
+        ax.set_xlabel("Categories")
         ax.set_ylabel("Count")
-        ax.legend(title="Dataset")
-        ax.grid(axis='y', linestyle='--', alpha=0.6)
-        plt.savefig(f"{output_path}grouped_{category}_comparison.png", bbox_inches='tight', dpi=300)
-        plt.close()
+        ax.set_xticks(x + width * (len(dfs) - 1) / 2)
+        ax.set_xticklabels(all_categories, rotation=45, ha="right")
+        ax.legend()
+        ax.grid(axis="y", linestyle="--", alpha=0.6) 
 
 def merge_csv_pair(file1, file2, output_file):
-    """Merge two CSVs row-wise by ID, preferring non-'NO CLASS FOUND' values and skipping broken rows."""
+    """Merge two CSVs row-wise by ID, preferring non-"NO CLASS FOUND" values and skipping broken rows."""
     df1 = pd.read_csv(file1,dtype=str)
     df2 = pd.read_csv(file2,dtype=str)
 
@@ -197,16 +257,16 @@ def merge_csv_pair(file1, file2, output_file):
     df2.columns = df2.columns.str.strip().str.lower()
 
     # Drop fully empty or junk rows
-    df1 = df1.dropna(how='any')
-    df2 = df2.dropna(how='any')
+    df1 = df1.dropna(how="any")
+    df2 = df2.dropna(how="any")
 
-    # Keep only rows with a proper 'id'
-    df1 = df1[df1['id'].notna() & (df1['id'].str.len() > 4)]
-    df2 = df2[df2['id'].notna() & (df2['id'].str.len() > 4)]
+    # Keep only rows with a proper "id"
+    df1 = df1[df1["id"].notna() & (df1["id"].str.len() > 4)]
+    df2 = df2[df2["id"].notna() & (df2["id"].str.len() > 4)]
 
-    # Drop duplicates by 'id'
-    df1 = df1.drop_duplicates(subset='id').set_index('id')
-    df2 = df2.drop_duplicates(subset='id').set_index('id')
+    # Drop duplicates by "id"
+    df1 = df1.drop_duplicates(subset="id").set_index("id")
+    df2 = df2.drop_duplicates(subset="id").set_index("id")
 
     # Union of all IDs
     all_ids = df1.index.union(df2.index)
@@ -231,6 +291,38 @@ def merge_csv_pair(file1, file2, output_file):
     merged = merged.reset_index()
     merged.to_csv(output_file, index=False)
 
+def create_id_subset():
+  
+    def extract_year(id_str):
+        match = re.search(r'_(\d{4}-\d{2}-\d{2})$', str(id_str))
+        if match:
+            return int(match.group(1).split('-')[0])
+        return 
+    
+    df = pd.read_csv(solution_clip)
+    # Add year column and filter valid years
+    df['year'] = df['id'].apply(extract_year)
+    df = df[df['year'].between(2019, 2022)]  # Only keep 2019-2022
+
+    # Get 250 random IDs from each year (or all if fewer than 250)
+    selected_ids = []
+    for year in range(2019, 2023):
+        year_ids = df[df['year'] == year]['id']
+        sample_size = min(250, len(year_ids))
+        
+        if sample_size > 0:
+            sampled = year_ids.sample(n=sample_size)
+            selected_ids.extend(sampled.tolist())
+            print(f"Selected {sample_size} IDs for year {year}")
+        else:
+            print(f"No IDs found for year {year}")
+
+    # Create new DataFrame and save
+    new_df = pd.DataFrame({'id': selected_ids})
+    new_df.to_csv('random_ids_by_year.csv', index=False)
+    print(f"Created file with {len(new_df)} total IDs")
+
+#create_id_subset()
 #merge_csv_pair(solution_pandagpt_1, solution_pandagpt_2, solution_pandagpt_3)
 #merge_csv_pair(solution_videochatgpt_1,solution_videochatgpt_2,solution_videochatgpt_3)
 #merge_csv_pair(solution_videollava_1, solution_videollava_2, solutions_videollava_3)
@@ -238,14 +330,15 @@ def merge_csv_pair(file1, file2, output_file):
 # Put the bars for each path together in a different color
 
 
-for solution in solutions:
-    visualize(solution)
+#same_subset(solutions)
+#for solution in solutions:
+ #   visualize(solution)
 
-    """
+"""
     original_path = Path(solution)
     new_path = original_path.parent / "NEW" / original_path.name
 
     df = pd.read_csv(solution)
     df = fix_animals_column(df)
     df.to_csv(new_path, index = False)
-    """
+ """
