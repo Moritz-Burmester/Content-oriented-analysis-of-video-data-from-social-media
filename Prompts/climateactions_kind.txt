@@ -9,5 +9,5 @@ Analyze the video. What kind of climate actions is the video featuring? Select f
 8: Oil (e.g. oil rigs, oil pipelines);
 9: Natural gas (e.g. fracking, gas power plants);
 10: Other climate action (no politics, protest, solar energy, wind energy, hydropower, bioenergy, coal or natural gas);
-Answer with only the class-number of the relevant categories. No extra words or explanations. 
+Answer only with the class-number of the relevant categories. No extra words or explanations. 
 Before answering check if your answer contains the class-number of the category. 

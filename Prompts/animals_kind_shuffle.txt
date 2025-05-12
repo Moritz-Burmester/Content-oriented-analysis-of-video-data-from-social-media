@@ -11,5 +11,5 @@ Analyze the video. What kind of animals are featured? Select from the classes 1 
 10: Land mammals (e.g. lions, tigers, elephants, giraffes, deer, wolves, bears);
 11: Insects (e.g. ants, bees, butterflies);
 12: Farm animals (e.g. cattle, pigs, chickens, sheep, goats);
-Answer with only the class-number of the relevant categories. No extra words or explanations.
+Answer only with the class-number of the relevant categories. No extra words or explanations.
 Before answering check if your answer contains the class-number of the category.

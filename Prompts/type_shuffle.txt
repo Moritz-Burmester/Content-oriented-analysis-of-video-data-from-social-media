@@ -8,5 +8,5 @@ Analyze the video. What type of video is it? Select from the classes 1 to 9:
 7: Screenshot (e.g. captured text, news articles, social media posts);
 8: Infographic (e.g. visual overviews with minimal text);
 9: Single photo (e.g. individual photographs, may include text overlay);
-Answer with only the class-number of the relevant categories. No extra words or explanations.
+Answer only with the class-number of the relevant categories. No extra words or explanations.
 Before answering check if your answer contains the class-number of the category.

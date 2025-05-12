@@ -12,5 +12,5 @@ Analyze the video. What kind of climate consequences is the video featuring? Sel
 11: Covid (e.g. corona crisis related);
 12: Health (e.g. pandemics, health crises);
 13: Other consequence (no floods, droughts, wildfires, rising temperature, other extreme weather events, melting ice, sea level rise, human rights, economic consequences, bioddiversity loss, covid or health);
-Answer with only the class-number of the relevant categories. No extra words or explanations. 
+Answer only with the class-number of the relevant categories. No extra words or explanations. 
 Before answering check if your answer contains the class-number of the category. 

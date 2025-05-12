@@ -9,5 +9,5 @@ Analyze the video. What kind of climate actions is the video featuring? Select f
 8: Hydropower (e.g. hydroelectric dams, tidal energy);
 9: Bioenergy (e.g. biogas, biomass plants);
 10: Protests (e.g. climate marches, Fridays for Future, Extinction Rebellion);
-Answer with only the class-number of the relevant categories. No extra words or explanations.
+Answer only with the class-number of the relevant categories. No extra words or explanations.
 Before answering check if your answer contains the class-number of the category.

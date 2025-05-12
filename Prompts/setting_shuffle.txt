@@ -14,5 +14,5 @@ Analyze the video. What kind of setting is the video in? Select from the classes
 13: Industrial area (e.g. factories, warehouses, pipelines);
 14: Commercial area (e.g. shops, shopping centre, malls);
 15: Desert (e.g. sand dunes, arid landscapes);
-Answer with only the class-number of the relevant categories. No extra words or explanations.
+Answer only with the class-number of the relevant categories. No extra words or explanations.
 Before answering check if your answer contains the class-number of the category.
