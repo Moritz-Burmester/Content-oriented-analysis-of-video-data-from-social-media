@@ -33,17 +33,17 @@ exception_videollava = "/work/mburmest/bachelorarbeit/Exceptions/videollava_exce
 exception_videochatgpt = "/work/mburmest/bachelorarbeit/Exceptions/videochatgpt_exception.csv"
 exception_pandagpt = "/work/mburmest/bachelorarbeit/Exceptions/pandagpt_exception.csv"
 
-exceptions = [exception_videollava, exception_videochatgpt, exception_pandagpt]
+exceptions_files = [exception_videollava, exception_videochatgpt, exception_pandagpt]
 
 
 def exceptions():
     exception_ids = set()
-    for exception in exceptions:
+    for exception in exceptions_files:
         with open(exception) as f:
             ids = re.findall(r"id_\d+_\d{4}-\d{2}-\d{2}", f.read())
             print(f"{exception}: {len(ids)} IDs")
 
-    for exception in exceptions:
+    for exception in exceptions_files:
         with open(exception) as f:
             exception_ids.update(re.findall(r"id_\d+_\d{4}-\d{2}-\d{2}", f.read()))
 
@@ -145,19 +145,19 @@ def visualize(path):
     all_data = {col: defaultdict(dict) for col in PLOT_COLS}
 
     df = pd.read_csv(path)
-    df = df[~df["id"].isin(exceptions())]
+    exceptions_ids = exceptions()
+    df = df[~df["id"].isin(exceptions_ids)]
     name = path.split("/")[-1].split(".")[0]
 
     fontsize_global = 16
 
     for category in PLOT_COLS:
         
-
         split_categories = df[category].astype(str).str.split("|").explode().str.strip()
         split_categories = split_categories[(split_categories != "") & (split_categories != "nan")]
 
         category_counts = split_categories.value_counts().sort_values(ascending=False)
-        category_percents = (category_counts / category_counts.sum() * 100).round(1)
+        category_percents = ((category_counts / len(df)) * 100).round(1)
 
         # Store for later multi-dataset plot
         for label in category_counts.index:
@@ -267,41 +267,54 @@ def combined_bar_charts(csv_paths):
         plt.close()
 
 def merge_csv_pair(file1, file2, output_file):
-    df1 = pd.read_csv(file1,dtype=str)
-    df2 = pd.read_csv(file2,dtype=str)
+    def unify_cell_values(val1, val2):
+    # Normalize missing values
+        val1 = val1 if pd.notna(val1) else ''
+        val2 = val2 if pd.notna(val2) else ''
+        
+        parts1 = set(part.strip() for part in val1.split('|') if part.strip())
+        parts2 = set(part.strip() for part in val2.split('|') if part.strip())
 
-    # Strip column names and convert to lowercase
+        if parts1 == {'No Class Found'} and parts2 == {'No Class Found'}:
+            return 'No Class Found'
+
+        # Merge and exclude 'No Class Found' unless it's the only entry in both
+        merged = (parts1 | parts2) - {'No Class Found'}
+        return '|'.join(sorted(merged)) if merged else ''
+
+
+    df1 = pd.read_csv(file1, dtype=str)
+    df2 = pd.read_csv(file2, dtype=str)
+
+    # Normalize column names
     df1.columns = df1.columns.str.strip().str.lower()
     df2.columns = df2.columns.str.strip().str.lower()
 
-    # Drop fully empty or junk rows
-    df1 = df1.dropna(how="any")
-    df2 = df2.dropna(how="any")
-
-    # Keep only rows with a proper "id"
+    # Keep only rows with valid "id"
     df1 = df1[df1["id"].notna() & (df1["id"].str.len() > 4)]
     df2 = df2[df2["id"].notna() & (df2["id"].str.len() > 4)]
 
-    # Union of all IDs
+    # Set index to 'id'
+    df1.set_index('id', inplace=True)
+    df2.set_index('id', inplace=True)
+
+    # Align all ids and columns
     all_ids = df1.index.union(df2.index)
+    all_columns = df1.columns.union(df2.columns)
 
-    # Align both DataFrames
-    df1 = df1.reindex(all_ids)
-    df2 = df2.reindex(all_ids)
-
-    # Ensure consistent column structure
-    if not df1.columns.equals(df2.columns):
-        raise ValueError("Files have mismatched columns.")
+    df1 = df1.reindex(index=all_ids, columns=all_columns)
+    df2 = df2.reindex(index=all_ids, columns=all_columns)
 
     # Merge intelligently
-    merged = df1.copy()
-    for col in df1.columns:
-        merged[col] = df1[col].where(
-            (df1[col] != "No Class Found") & df1[col].notna(),
-            df2[col]
-        )
+    merged = pd.DataFrame(index=all_ids, columns=all_columns)
 
-    # Final cleanup
+    for col in all_columns:
+        merged[col] = [
+            unify_cell_values(v1, v2)
+            for v1, v2 in zip(df1[col], df2[col])
+        ]
+
+    # Reset index and write to output
     merged = merged.reset_index()
     merged.to_csv(output_file, index=False)
 
@@ -364,46 +377,56 @@ def trend_graph(path):
     FONTSIZE = 16
     df = load_dataset_with_duplicates(path)
 
-    # Extract full date from 'id' and get quarter
+    # Extract date from ID and compute quarter
     df['date'] = pd.to_datetime(df['id'].str.extract(r'(\d{4}-\d{2}-\d{2})')[0])
-    df['quarter'] = df['date'].dt.to_period('Q').astype(str)  # e.g., '2019Q1', '2019Q2'
+    df['quarter'] = df['date'].dt.to_period('Q').astype(str)
+    df['quarter'] = df['quarter'].str.replace(r'(\d{4})Q', r'\1-Q', regex=True)
 
-    columns = ["animals", "climateactions", "consequences", "type"]
-    replacements = {"No": None}
+    colors = [
+        "#1f77b4", "#ff7f0e", "#2ca02c", "#d62728",
+        "#9467bd", "#8c564b", "#e377c2", "#7f7f7f",
+        "#bcbd22", "#17becf", "#aec7e8", "#ffbb78"
+    ]
 
-    for category in columns:
-        df_col = df.copy()
-        df_col[category] = df_col[category].replace(replacements)
-        df_col[category] = df_col[category].dropna().str.split(r'\||, ')
-        df_col = df_col.explode(category).dropna()
+    for category in ["animals", "climateactions", "consequences", "setting", "type"]:
+        df_col = df[['quarter', category]].copy()
 
-        # Count category occurrences by quarter
+        # Split on '|' only
+        df_col[category] = df_col[category].astype(str).str.split('|')
+        df_col = df_col.explode(category)
+        df_col[category] = df_col[category].str.strip()
+
+        # Remove 'No' only for certain columns
+        if category in ["animals", "climateactions", "consequences"]:
+            df_col = df_col[(df_col[category] != '') & (df_col[category].str.lower() != 'no')]
+        else:
+            df_col = df_col[df_col[category] != '']  # Keep everything else, including "No Setting"
+
+        # Count occurrences per quarter and category
         count_df = df_col.groupby(['quarter', category]).size().reset_index(name='count')
 
-        # Total number of videos per quarter
-        total_per_quarter = df.groupby('quarter').size().rename("total").reset_index()
+        # Total valid entries per quarter
+        total_per_quarter = df_col.groupby('quarter').size().reset_index(name='total')
 
-        # Compute relative frequency
+        # Merge and calculate relative frequency
         merged = count_df.merge(total_per_quarter, on='quarter')
         merged['relative'] = merged['count'] / merged['total']
 
         # Pivot for plotting
         pivot = merged.pivot(index='quarter', columns=category, values='relative').fillna(0)
-
-        # Ensure sorted order
         pivot = pivot.sort_index()
 
-        # Plot with font settings
-        ax = pivot.plot(marker='o', figsize=(14, 8), fontsize=FONTSIZE)
+        # Plot
+        ax = pivot.plot(marker='o', figsize=(22, 14), fontsize=FONTSIZE, color=colors)
         ax.set_ylabel("Relative Frequency", fontsize=FONTSIZE)
         ax.set_xlabel("Quarter", fontsize=FONTSIZE)
         ax.set_xticks(range(len(pivot.index)))
         ax.set_xticklabels(pivot.index, rotation=45, ha='right', fontsize=FONTSIZE)
         ax.tick_params(axis='y', labelsize=FONTSIZE)
-        ax.legend(fontsize=FONTSIZE)
+        ax.legend(fontsize=FONTSIZE, title=category.capitalize(),loc='upper right')
         ax.grid(True)
 
-        plt.savefig(f"{output_path}/Trend/{category}_trend_1.png", bbox_inches="tight", dpi=300)
+        plt.savefig(f"{output_path}/Trend/clip_{category}_trend.png", bbox_inches="tight", dpi=300)
         plt.close()
 
 def compare_no_assignments(file1_path, file2_path):
@@ -480,6 +503,47 @@ def count_value_per_column(file_path: str, target_value: str) -> dict:
 
     return result
 
+def drop_duplicate_ids(input_file):
+    df = pd.read_csv(input_file, dtype=str)
+
+    # Normalize column names
+    df.columns = df.columns.str.strip().str.lower()
+
+    # Drop rows with missing or too-short IDs
+    if "id" not in df.columns:
+        raise ValueError("No 'id' column found.")
+
+    df = df[df["id"].notna() & (df["id"].str.strip().str.len() > 4)]
+
+    # Normalize IDs
+    df["id"] = df["id"].str.strip().str.lower()
+
+    # Drop duplicates by keeping the first occurrence
+    df = df.groupby("id", as_index=False).first()
+
+    # Save cleaned CSV
+    df.to_csv(input_file, index=False)
+
+def print_unique_values_with_percentages(path):
+    df = pd.read_csv(path)
+
+    for group in df.columns:
+        if group == "id":
+            continue
+
+        
+        value_counts = df[group].value_counts()
+        percentages = (value_counts / len(df)) * 100
+
+        # Print each unique value with its percentage
+        print(f"Unique values in '{group}':")
+        for value, percent in percentages.items():
+            if percent > 1:
+                print(f"- {value}: {percent:.1f}%")
+
+#trend_graph(solution_clip)
+
+#print_unique_values_with_percentages(solution_clip)
 
 #visualize(solutions_videollava_3)
 #visualize(solutions_videollava_1000)
@@ -489,26 +553,28 @@ def count_value_per_column(file_path: str, target_value: str) -> dict:
 #combined_bar_charts([solutions_videollava_3, solutions_videollava_1000])
 #create_id_subset()
 #merge_csv_pair(solution_pandagpt_1, solution_pandagpt_2, solution_pandagpt_3)
-#merge_csv_pair(solution_videochatgpt_1,solution_videochatgpt_2,solution_videochatgpt_3)
+#drop_duplicate_ids(solution_videochatgpt_1)
+#drop_duplicate_ids(solution_videochatgpt_2)
+
+
+#merge_csv_pair(solution_videochatgpt_1,solution_videochatgpt_2,"/work/mburmest/bachelorarbeit/Solution/videochatgpt_solution_4.csv")
 #merge_csv_pair(solution_videollava_1, solution_videollava_2, solutions_videollava_3)
 
 # Put the bars for each path together in a different color
 
 
 #same_subset(solutions)
+
 #for solution in solutions:
     
 #trend_graph(solution_clip)
 
 #compare_no_assignments(solutions_videollava_3, solutions_videollava_1000)
 
-df = pd.read_csv(solution_videochatgpt_3)
-print("ADw")
-df = df.reset_index(drop=True)
-#df = df.drop(columns=["index"])
 # Example usage
 
-#counts = count_value_per_column(solutions_videollava_3, "No")
+#counts = count_value_per_column(solution_videochatgpt_3, "No Class Found")
+#counts = count_value_per_column("/work/mburmest/bachelorarbeit/Solution/videochatgpt_solution_4.csv", "No Class Found")
 
 """
     original_path = Path(solution)

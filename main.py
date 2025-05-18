@@ -246,8 +246,8 @@ def classify_model(*args):
         torch.cuda.empty_cache()
 
 def classify_model_fixed_ids(*args):
-    if not os.path.exists("/work/mburmest/bachelorarbeit/Solution/videollava_solution_1000.csv"):
-        pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv("/work/mburmest/bachelorarbeit/Solution/videollava_solution_1000.csv", index=False)
+    if not os.path.exists("/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1000.csv"):
+        pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv("/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1000.csv", index=False)
 
 
     df = pd.read_csv("/work/mburmest/bachelorarbeit/random_ids_by_year.csv")
@@ -288,8 +288,31 @@ def classify_model_fixed_ids(*args):
         results = classify(video, second_prompts, *args)
         
         results_1 = format_result_shuffle(results, second_prompts, no_index, failed_index)
+        results_2 = word_search(results, second_prompts, no_index, failed_index)
 
-        write_to_csv("/work/mburmest/bachelorarbeit/Solution/videollava_solution_1000.csv", ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_1)
+        results_final = []
+
+        for r1, r2 in zip(results_1, results_2):
+            r1_list = r1.split("|")
+            r2_list = r2.split("|")
+            
+            # Check if either list has entries other than "no class found" (case-insensitive)
+            r1_has_valid = any(item.strip().lower() != "no class found" for item in r1_list)
+            r2_has_valid = any(item.strip().lower() != "no class found" for item in r2_list)
+            
+            if r1_has_valid or r2_has_valid:
+                # Drop all "no class found" entries (case-insensitive)
+                merged = [
+                    item for item in set(r1_list + r2_list) 
+                    if item.strip().lower() != "no class found"
+                ]
+            else:
+                # Both only have "no class found" → keep one
+                merged = ["no class found"]
+            
+            results_final.append("|".join(merged))
+
+        write_to_csv("/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1000.csv", ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_final)
 
 def id_to_path(video_id):
     # Extract date part (after the last underscore)
@@ -555,23 +578,23 @@ def word_search(results: list, prompts: list, no_index: list, failed_index: list
         result_clean = re.sub(r"<[^>]+>", "", result_clean)  # Remove HTML-like tags
         result_clean = re.sub(r"(not).*?(\.)", r"\1\2", result_clean) # Remove "not" to "."
 
-        if prompt == PROMPTS["animals_kind"]:
+        if prompt == PROMPTS["animals_kind"] or PROMPTS["animals_shuffle"]:
             animals = ["Pets", "Farm animals", "Polar bears", "Land mammals", "Sea mammals", "Fish", "Amphibians", "Reptiles", "Invertebrates", "Birds", "Insects", "Other"]
             wordbank = animals
 
-        elif prompt == PROMPTS["consequences_kind"]:
+        elif prompt == PROMPTS["consequences_kind"] or PROMPTS["consequences_shuffle"]:
             consequences = ["Floods", "Drought", "Wildfires", "Rising temperature", "Other extreme weather events", "Melting ice", "Sea level rise", "Human rights", "Economic consequences", "Biodiversity loss", "Covid", "Health", "Other consequence"]
             wordbank = consequences
 
-        elif prompt == PROMPTS["climateactions_kind"]:
+        elif prompt == PROMPTS["climateactions_kind"] or PROMPTS["climateactions_shuffle"]:
             climate_actions = ["Politics", "Protests", "Solar energy", "Wind energy", "Hydropower", "Bioenergy", "Coal", "Oil", "Natural gas", "Other climate action"]
             wordbank = climate_actions
 
-        elif prompt == PROMPTS["setting"]:
+        elif prompt == PROMPTS["setting"] or PROMPTS["setting_shuffle"]:
             settings = ["No setting", "Residential area", "Industrial area", "Commercial area", "Agricultural", "Rural", "Indoor space", "Arctic", "Antarctica", "Ocean", "Coastal", "Desert", "Forest", "Jungle", "Other nature", "Outer space", "Other setting"]
             wordbank = settings
 
-        elif prompt == PROMPTS["type"]:
+        elif prompt == PROMPTS["type"] or PROMPTS["type_shuffle"]:
             types = ["Event invitations", "Meme", "Infographic", "Data visualization", "Illustration", "Screenshot", "Single photo", "Photo collage", "Other type"]
             wordbank = types
         
