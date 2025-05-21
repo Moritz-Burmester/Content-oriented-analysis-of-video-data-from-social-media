@@ -22,6 +22,7 @@ solution_videochatgpt_3 = "/work/mburmest/bachelorarbeit/Solution/videochatgpt_s
 solution_pandagpt_1 = "/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1.csv"
 solution_pandagpt_2 = "/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_2.csv"
 solution_pandagpt_3 = "/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_3.csv"
+solution_pandagpt_1000 = "/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1000.csv"
 
 
 solutions = [solution_clip, 
@@ -181,7 +182,7 @@ def visualize(path):
         counts = category_counts.values
         percents = category_percents.values
 
-        if path == solutions_videollava_1000:
+        if path == solutions_videollava_1000 or path == solution_pandagpt_1000:
             bars = ax1.bar(x, counts, color="orange", label="Count")
         else:
             bars = ax1.bar(x, counts, color="teal", label="Count")
@@ -205,11 +206,27 @@ def visualize(path):
         plt.close()
 
 def combined_bar_charts(csv_paths):
-    PLOT_COLS = ["animals", "climateactions", "consequences", "setting", "type"]
-    
+    PLOT_COLS = ["climateactions"]
+    fontsize_global = 18  # Consistent font size across plots
+    custom_colors = ["teal", "orange", "purple", "green", "crimson"]  
+
     all_data = {col: defaultdict(dict) for col in PLOT_COLS}
     dfs = [pd.read_csv(path) for path in csv_paths]
-    names = [path.split("/")[-1].split(".")[0] for path in csv_paths]
+    names = [path.split("/")[-1].split(".")[0].split("_")[0] for path in csv_paths]
+
+    # Step 1: Create a set of blacklisted IDs (rows with "No Class Found" in any PLOT_COLS column)
+    blacklisted_ids = set()
+    for df in dfs:
+        for col in PLOT_COLS:
+            mask = df[col].astype(str).str.contains("No Class Found", na=False)            
+
+            blacklisted_ids.update(df.loc[mask, "id"].tolist())
+
+    # Step 2: Filter out blacklisted rows from all DataFrames
+    dfs = [df[~df["id"].isin(blacklisted_ids)].copy() for df in dfs]
+
+    # Set global font size
+    plt.rcParams.update({'font.size': fontsize_global})
 
     for column in PLOT_COLS:
         category_counts_per_file = []
@@ -233,11 +250,12 @@ def combined_bar_charts(csv_paths):
         # Transpose for plotting
         data = np.array(data_matrix)
         x = np.arange(len(all_categories))
-        width = 0.8 / len(dfs)  # width per bar
+        width = 0.90 / len(dfs)  # width per bar
 
-        fig, ax = plt.subplots(figsize=(18, 7))
+        fig, ax = plt.subplots(figsize=(24, 7))
         for i, file_counts in enumerate(data):
-            bar = ax.bar(x + i * width, file_counts, width, label=names[i])
+            color = custom_colors[i % len(custom_colors)]  # Safeguard against overflow
+            bar = ax.bar(x + i * width, file_counts, width, color=color, label=names[i])
 
             # 🔧 Count + Percentage label — editable section
             total = sum(file_counts)
@@ -246,24 +264,21 @@ def combined_bar_charts(csv_paths):
                 ax.text(
                     x[idx] + i * width,
                     height,
-                    f"{int(height)}\n({percent:.1f}%)",
+                    f"{percent:.1f}%",
                     ha="center",
                     va="bottom",
-                    fontsize=8,
+                    fontsize=fontsize_global - 4,
                     rotation=0,
                 )
             # End editable section
 
-        ax.set_title(f"Distribution of categories in column: {column}")
-        ax.set_xlabel("Categories")
-        ax.set_ylabel("Count")
+        ax.set_ylabel("Count", fontsize=fontsize_global)
         ax.set_xticks(x + width * (len(dfs) - 1) / 2)
-        ax.set_xticklabels(all_categories, rotation=45, ha="right")
-        ax.legend()
+        ax.set_xticklabels(all_categories, rotation=45, ha="right", fontsize=fontsize_global)
+        ax.legend(fontsize=fontsize_global)
         ax.grid(axis="y", linestyle="--", alpha=0.6) 
 
-
-        plt.savefig(f"{output_path}combined_analysis.png", bbox_inches="tight", dpi=300)
+        plt.savefig(f"{output_path}/Combined/combined_analysis_{column}.png", bbox_inches="tight", dpi=300)
         plt.close()
 
 def merge_csv_pair(file1, file2, output_file):
@@ -488,7 +503,7 @@ def count_value_per_column(file_path: str, target_value: str) -> dict:
 
     Args:
         file_path: Path to the CSV file.
-        target_value: Value to count (e.g., "No").
+        target_value: Value to count.
 
     Returns:
         A dictionary with columns as keys and counts as values.
@@ -497,9 +512,9 @@ def count_value_per_column(file_path: str, target_value: str) -> dict:
     columns_to_check = [col for col in df.columns if col != 'id']
     result = {col: (df[col] == target_value).sum() for col in columns_to_check}
 
-    print(f"Counts of '{target_value}' per column:")
-    for col, count in result.items():
-        print(f"- {col}: {count}")
+    #print(f"Counts of '{target_value}' per column:")
+    #for col, count in result.items():
+        #print(f"- {col}: {count}")
 
     return result
 
@@ -541,15 +556,95 @@ def print_unique_values_with_percentages(path):
             if percent > 1:
                 print(f"- {value}: {percent:.1f}%")
 
+def print_amount_values(path):
+    df = load_dataset_with_duplicates(path)
+
+    # Extract date from ID and compute quarter
+    df['date'] = pd.to_datetime(df['id'].str.extract(r'(\d{4}-\d{2}-\d{2})')[0])
+    df['quarter'] = df['date'].dt.to_period('Q').astype(str)
+    df['quarter'] = df['quarter'].str.replace(r'(\d{4})Q', r'\1-Q', regex=True)
+
+    df["quarter"].value_counts()
+
+def group_unique_videos_quarter(path, column, target_value, exclude_memes=False):
+    # Load main dataset and duplicates mapping
+    df = load_dataset_with_duplicates(path)
+    df_dups = pd.read_csv("/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates_to_originals.csv")
+
+    # Extract date and quarter from video ID
+    df['date'] = pd.to_datetime(df['id'].str.extract(r'(\d{4}-\d{2}-\d{2})')[0])
+    df['quarter'] = df['date'].dt.to_period('Q').astype(str)
+    df['quarter'] = df['quarter'].str.replace(r'(\d{4})Q', r'\1-Q', regex=True)
+
+    # Map each video to its original_id (via duplicates mapping)
+    dup_to_orig = dict(zip(df_dups['duplicate_id'], df_dups['original_id']))
+    df['original_id'] = df['id'].map(dup_to_orig)  # Map known duplicates
+    df['original_id'] = df['original_id'].fillna(df['id'])  # Non-duplicates map to themselves
+
+
+    original_mask = ~df['id'].isin(df_dups['duplicate_id'])  # True if the video is not a duplicate
+    # Base condition for finding target videos
+    condition = (original_mask & df[column].astype(str).str.contains(target_value, na=False))
+    
+    # Add meme exclusion if requested
+    if exclude_memes:
+        condition = condition & (~df['type'].astype(str).str.contains('Meme', na=False))
+    # Find all original video IDs with the target value (and optionally excluding memes)
+    
+    originals_with_target = df[condition]
+    valid_original_ids = set(originals_with_target['id'])
+
+    # Filter to only rows whose original_id is in the valid originals
+    df_filtered = df[df['original_id'].isin(valid_original_ids)]
+
+    # Group by quarter and original_id, and count usage
+    grouped = df_filtered.groupby(['quarter', 'original_id']).size().reset_index(name='count')
+
+    # Total number of videos per quarter (no filtering)
+    total_per_quarter = df.groupby('quarter').size().to_dict()
+
+    # Print results
+    for quarter in sorted(grouped['quarter'].unique()):
+        print(f"\nQuarter: {quarter} - Total videos in quarter: {total_per_quarter.get(quarter, 0)}")
+        quarter_data = grouped[grouped['quarter'] == quarter]
+        quarter_data = quarter_data.sort_values(by='count', ascending=False)
+        for _, row in quarter_data.iterrows():
+            if row['count'] > 2:
+                print(f"{row['original_id']}: {row['count']}")
+
+#group_unique_videos_quarter(solution_clip, "setting", "Forest, Jungle", exclude_memes=True)
 #trend_graph(solution_clip)
+"""
+for solution in [   solution_videollava_1, solution_videollava_2, solutions_videollava_3, 
+                    solution_videochatgpt_1, solution_videochatgpt_2, solution_videochatgpt_3, 
+                    solution_pandagpt_1, solution_pandagpt_2, solution_pandagpt_3]:
+    
+    print(f"\n {solution}")
+    no_class = count_value_per_column(solution, "No Class Found")
+    no = count_value_per_column(solution, "No")
 
+    for col in no_class:
+        class_count = no_class[col]
+        no_count = no[col]
+        valid_total = 44927 - no_count
+
+        if valid_total > 0:
+            relative = class_count / valid_total
+        else:
+            relative = 0.0  # Avoid division by zero
+
+        print(f"- {col}: {relative:.2%}")  # formatted as percentage
+"""
+
+
+combined_bar_charts([solution_videochatgpt_3, solution_clip])
 #print_unique_values_with_percentages(solution_clip)
-
 #visualize(solutions_videollava_3)
 #visualize(solutions_videollava_1000)
 #visualize(solution_pandagpt_3)
 #visualize(solution_videochatgpt_3)
 #visualize(solution_clip)
+#visualize(solution_pandagpt_1000)
 #combined_bar_charts([solutions_videollava_3, solutions_videollava_1000])
 #create_id_subset()
 #merge_csv_pair(solution_pandagpt_1, solution_pandagpt_2, solution_pandagpt_3)

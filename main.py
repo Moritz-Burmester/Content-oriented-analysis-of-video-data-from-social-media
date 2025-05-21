@@ -652,4 +652,16 @@ def print_progress_status(processed_count, total_files, start_time):
           f"Total estimate: {timedelta(seconds=int(elapsed_time + remaining_time))}")
 
 if __name__ == "__main__":
-    main()
+    #main()
+    df = pd.read_csv("random_ids_by_year.csv")
+
+    # Extract every 10th ID
+    n = 10
+    every_10th_ids = df.iloc[::n, df.columns.get_loc('id')]
+
+    # Convert to DataFrame and save to CSV
+    result_df = pd.DataFrame({'id': every_10th_ids})
+    result_df.to_csv("/work/mburmest/bachelorarbeit/Solution/manual_solution.csv", index=False) 
+
+    for video in df:
+        print(id_to_path(video))
