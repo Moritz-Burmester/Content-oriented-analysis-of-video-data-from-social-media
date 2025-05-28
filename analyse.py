@@ -1,4 +1,5 @@
 import datetime
+import glob
 import numpy as np
 import pandas as pd
 import re
@@ -59,6 +60,32 @@ climate_actions = ["Politics", "Protests", "Solar energy", "Wind energy", "Hydro
 settings = ["No setting", "Residential area", "Industrial area", "Commercial area", "Agricultural", "Rural", "Indoor space", "Arctic", "Antarctica", "Ocean", "Coastal", "Desert", "Forest", "Jungle", "Other nature", "Outer space", "Other setting", "No", "FAILED YES/NO", "NO CLASS FOUND"]
 types = ["Event invitations", "Meme", "Infographic", "Data visualization", "Illustration", "Screenshot", "Single photo", "Photo collage", "Other type", "No", "FAILED YES/NO", "NO CLASS FOUND"]
 """
+def info_subset():
+    videos = glob.glob("/ceph/lprasse/ClimateVisions/Videos/*/*/*.mp4")
+    df_dups = pd.read_csv("/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv")
+    duplicates = df_dups['id'].astype(str)
+
+    print(f"Videos total: {len(videos)}")
+
+    # Create a DataFrame from the video paths
+    df_videos = pd.DataFrame({'path': videos})
+
+    # Extract ID and date from filenames using regex
+    # Example filename: id_1228086819004321798_2020-02-14.mp4
+    df_videos['filename'] = df_videos['path'].str.extract(r'([^/]+\.mp4)$')
+    df_videos['id'] = df_videos['filename'].str.extract(r'(id_\d+_\d{4}-\d{2}-\d{2})')
+    df_videos['date'] = df_videos['id'].str.extract(r'(\d{4}-\d{2}-\d{2})')
+    df_videos['year'] = pd.to_datetime(df_videos['date'], errors='coerce').dt.year
+
+    # Remove duplicates
+    df_filtered = df_videos[~df_videos['id'].isin(duplicates)]
+
+    print(f"Videos after duplicates: {len(df_filtered)}")
+
+    # Count videos per year (for 2019–2022 only)
+    for year in [2019, 2020, 2021, 2022]:
+        count = df_filtered[df_filtered['year'] == year].shape[0]
+        print(f"Videos in {year}: {count}")
 
 def same_subset(paths):
     common_ids = None
@@ -206,7 +233,7 @@ def visualize(path):
         plt.close()
 
 def combined_bar_charts(csv_paths):
-    PLOT_COLS = ["climateactions"]
+    PLOT_COLS = ["type"]
     fontsize_global = 18  # Consistent font size across plots
     custom_colors = ["teal", "orange", "purple", "green", "crimson"]  
 
@@ -444,7 +471,8 @@ def trend_graph(path):
         plt.savefig(f"{output_path}/Trend/clip_{category}_trend.png", bbox_inches="tight", dpi=300)
         plt.close()
 
-def compare_no_assignments(file1_path, file2_path):
+def compare_assignments(file1_path, file2_path, target_value):
+    #Jaccard Similarity
     # Load both files
     df1 = pd.read_csv(file1_path)
     df2 = pd.read_csv(file2_path)
@@ -452,50 +480,42 @@ def compare_no_assignments(file1_path, file2_path):
     # Merge on 'id' (inner join to keep only matching IDs)
     merged = pd.merge(df1, df2, on='id', suffixes=('_file1', '_file2'))
 
-    # Columns to compare (all except 'id')
-    columns = ['animals', 'climateactions', 'consequences', 'setting', 'type']
+    # Columns to compare
+    columns = ["type"]
 
     results = {}
     for col in columns:
         col_file1 = f"{col}_file1"
         col_file2 = f"{col}_file2"
 
-        # Count "No" in each file for the column
-        no_file1 = (merged[col_file1] == 'No').sum()
-        no_file2 = (merged[col_file2] == 'No').sum()
+        # Booleans for "No" labels in each file
+        no_1 = merged[col_file1] == target_value
+        no_2 = merged[col_file2] == target_value
 
-        # Rows where both files have "No"
-        both_no = ((merged[col_file1] == 'No') & (merged[col_file2] == 'No')).sum()
+        # Calculate intersection and union
+        both_no = (no_1 & no_2).sum()
+        either_no = (no_1 | no_2).sum()
 
-        # Determine which file has more "No" values
-        if no_file1 > no_file2:
-            denominator = no_file1
-            file_with_more = "File 1"
-        elif no_file2 > no_file1:
-            denominator = no_file2
-            file_with_more = "File 2"
-        else:
-            denominator = no_file1  # or no_file2 (they're equal)
-            file_with_more = "Both files have equal 'No' counts"
-
-        # Calculate similarity percentage (avoid division by zero)
-        similarity = (both_no / denominator) * 100 if denominator > 0 else 0.0
+        # Calculate overlap percentage
+        overlap = (both_no / either_no) * 100 if either_no > 0 else 0.0
 
         results[col] = {
-            'similarity_percentage': similarity,
-            'file_with_more_no': file_with_more,
-            'total_matching_no': both_no,
-            'total_no_in_larger_file': denominator
+            'overlap_percentage': overlap,
+            'total_both_no': both_no,
+            'total_either_no': either_no
         }
 
     # Print results
     for col, data in results.items():
         print(
             f"Column '{col}':\n"
-            f"  - Similarity: {data['similarity_percentage']:.2f}% of 'No' assignments match.\n"
-            f"  - File with more 'No': {data['file_with_more_no']} "
-            f"({data['total_no_in_larger_file']} vs {data['total_matching_no']} matching)\n"
+            f"  - Overlap: {data['overlap_percentage']:.2f}% of {target_value} labels match.\n"
+            f"  - Both {target_value}': {data['total_both_no']}, Either {target_value}: {data['total_either_no']}\n"
         )
+    
+    for col, data in results.items():
+        print(f"{target_value}:")
+        print(f"{data['overlap_percentage']:.2f}\% ({data['total_both_no']}/{data['total_either_no']})")
 
 def count_value_per_column(file_path: str, target_value: str) -> dict:
     """
@@ -612,7 +632,15 @@ def group_unique_videos_quarter(path, column, target_value, exclude_memes=False)
             if row['count'] > 2:
                 print(f"{row['original_id']}: {row['count']}")
 
-#group_unique_videos_quarter(solution_clip, "setting", "Forest, Jungle", exclude_memes=True)
+
+
+
+#for x in ["All", "Data Visualization", "Event Invitations", "Illustration", "Infographic", "Meme", "Other Type", "Photo Collage", "Screenshot", "Single Photo"]:
+    #compare_assignments(solution_videochatgpt_3, solution_pandagpt_3, x)
+    #compare_assignments(solution_videochatgpt_3, solution_clip, x)
+    #compare_assignments(solution_clip, solution_pandagpt_3, x)
+
+#group_unique_videos_quarter(solution_clip, "animals", "Farm Animals", exclude_memes=False)
 #trend_graph(solution_clip)
 """
 for solution in [   solution_videollava_1, solution_videollava_2, solutions_videollava_3, 
@@ -636,8 +664,8 @@ for solution in [   solution_videollava_1, solution_videollava_2, solutions_vide
         print(f"- {col}: {relative:.2%}")  # formatted as percentage
 """
 
-
-combined_bar_charts([solution_videochatgpt_3, solution_clip])
+#info_subset()
+combined_bar_charts([solution_videochatgpt_3,solution_pandagpt_3 ,solution_clip])
 #print_unique_values_with_percentages(solution_clip)
 #visualize(solutions_videollava_3)
 #visualize(solutions_videollava_1000)
