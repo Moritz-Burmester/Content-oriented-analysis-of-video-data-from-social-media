@@ -5,6 +5,10 @@ from Video_LLaVA.videollava.model.builder import load_pretrained_model
 from Video_LLaVA.videollava.utils import disable_torch_init
 from Video_LLaVA.videollava.mm_utils import tokenizer_image_token, get_model_name_from_path, KeywordsStoppingCriteria
 
+"""
+File used for the classifcation of videos with Video-LLaVA.
+"""
+
 def init_videollava():
     """
     Inits the model
@@ -29,8 +33,8 @@ def classify_videollava(sel_video, prompts, *args):
     Classifies a video for a selection of prompts
     
     Inputs:
-        sel_video: Path to the video that is classified
-        prompts: List of prompts used on that video
+        sel_video (str): Path to the video that is classified
+        prompts (list of str): List of prompts used on that video
         *args: Parameters created from init() for running the model
 
     Return:

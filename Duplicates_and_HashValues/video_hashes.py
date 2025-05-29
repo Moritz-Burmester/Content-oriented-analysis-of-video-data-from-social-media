@@ -5,25 +5,53 @@ import os
 import cv2
 
 """
-This code caculates the hash-values of the first and last non-black frame of a video and inputs it in a json file.
+This code caculates the hash-values of the first and last non-black frame of a video and inputs it in a csv file.
 """
 
 dataset_path = "/ceph/lprasse/ClimateVisions/Videos"
+# Output file
 video_hash_values_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/video_hash_values.csv"
 
 # Gets all the video files (mp4) in the structure path/year/month/id.mp4
 files = glob.glob(f"{dataset_path}/*/*/*.mp4")
 
-# Caculate a hashvalue for a frame
+
 def getHashValue(frame):
+    """
+    Calculates a SHA-256 hash value for a given video frame.
+
+    Parameters:
+        frame: Frame of a video
+
+    Returns:
+        str: A hexadecimal SHA-256 hash string of the frame.
+    """
     return hashlib.sha256(frame.tobytes()).hexdigest()
 
-# Checks if a frame is black
 def blackFrame(frame):
+    """
+    returns true if a frame is black
+    => Frame == Black if the frame.mean() < 5
+
+    Parameters:
+        frame: Frame of a video
+
+    Returns:
+        bool
+    """
     return frame.mean() < 5
 
-# Get the first frame that is not-black (if the whole video is black a black frame is returned)
 def getFirstFrame(video):
+    """
+    Get the first frame that is not-black (if the whole video is black a black frame is returned).
+    
+    Parameters:
+        video (str): Path to the video
+
+    Returns:
+        First non black frame
+    """
+
     cap = cv2.VideoCapture(video)
 
     if not cap.isOpened():
@@ -49,8 +77,18 @@ def getFirstFrame(video):
     # Only black frames found
     return frame
 
-# Get the last frame that is not-black (if the whole video is black a black frame is returned)
 def getLastFrame(video):
+    """
+    Get the last frame that is not-black (if the whole video is black a black frame is returned)
+    
+    Parameters:
+        video (str): Path to the video
+
+    Returns:
+        Last non black frame
+    """
+
+
     cap = cv2.VideoCapture(video)
 
     if not cap.isOpened():
@@ -78,8 +116,11 @@ def getLastFrame(video):
     # Only black frames found
     return frame
 
-# Init csv file
 def init_video_hash_values_csv():
+   """
+   Inits the csv file video_hash_values.csv File has to be created before.
+   """
+
    header = ["id", "hash1", "hash2"]
 
    if os.path.exists(video_hash_values_db):
@@ -92,18 +133,24 @@ def init_video_hash_values_csv():
    else: 
        print("Error: CSV-File not found")
            
-       
-
-        
-# Function for filling json file
 def append_video_hash_values(id_value, hash1_value, hash2_value):
+    """
+    Write values in video_hash_values_db.
+
+    Parameters:
+        id_value (str): ID of the video
+        hash1_value (str): Hash value of the first frame
+        hash2_value (str): Hash value of the last frame
+    """
+
     with open(video_hash_values_db, mode="a", newline="") as file:
         writer = csv.writer(file)
         writer.writerow([id_value, hash1_value, hash2_value])
 
+# Start of the code
+
 init_video_hash_values_csv()
 
-# Loop trough data and caculate hashes 
 total_files = len(files)
 for i, file in enumerate(files):
     id_string = file.split("/")[-1].split(".")[0]

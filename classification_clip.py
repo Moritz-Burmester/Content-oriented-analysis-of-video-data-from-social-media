@@ -5,11 +5,34 @@ import numpy as np
 import re
 from PIL import Image
 
+"""
+File used for the classifcation of videos with CLIP.
+"""
+
 def init_clip():
+    """
+    Inits the model
+
+    Return:
+        Parameters of the model
+    """
+
     model, preprocess = clip.load("ViT-B/32", device="cuda")
     return model, preprocess, 
 
 def classify_clip(sel_video, prompts, *args):
+    """
+    Classifies a video for a selection of prompts
+    
+    Inputs:
+        sel_video (str): Path to the video that is classified
+        prompts (list of str): List of prompts used on that video
+        *args: Parameters created from init() for running the model
+
+    Return:
+        List of results
+    """
+
     model = args[0]
     preprocess = args[1]
     device = "cuda"
@@ -42,6 +65,7 @@ def extract_frames(video_path):
     Returns:
         list: A list of extracted frames as PyTorch tensors.
     """
+
     num_frames = 11
 
     container = av.open(video_path)
@@ -65,7 +89,7 @@ def extract_frames(video_path):
 
 def format_prompt(prompt:str):
     """
-    Extracts category labels from prompt
+    Extracts category labels from prompt.
 
     Input:
         prompt: String of a prompt
@@ -79,15 +103,28 @@ def format_prompt(prompt:str):
     # Clean and return (preserve original capitalization)
     return categories
 
-#"word1" or "No" or "word1|word2"
-# Categories for the list in a prompt
 def format_result(prompt_categories, probabilities, no_allowed):
+    """
+    This method contructs the result of CLIPs output by building a string of all categories that have a likelyhood of over 50%.
+    If no such category can be found "No" or the highest propability category will be selected. This depends on no_allowed.
+
+    Parameter:
+        prompt_categories (list of str): ["a diagram", "a dog", "a cat"]
+        probabilities (): [0.9927937  0.00421068 0.00299572]
+        no_allowed (bool): True if no category can be assigned, False if a category has to be present.
+
+    Returns:
+        String. "word1" or "No" or "word1|word2"
+    """
+
     cleaned = lambda category: re.sub(r"\s*\(.*?\)", "", category).strip()
     result = ""
 
     for idx, category in enumerate(prompt_categories):
         for row in probabilities:
             probability = row[idx]
+
+            # CLIP Threshhold set at 50%
             if probability > 0.5:
                 result = append_string(result, cleaned(category))
                 break
@@ -100,10 +137,21 @@ def format_result(prompt_categories, probabilities, no_allowed):
 
     return result
 
-def append_string(string:str, apendix:str):
+def append_string(string:str, appendix:str):
+    """
+    This builds a string by dividing two or more words like this: "word1|word2"
+
+    Parameters:
+        string (str): String to append to
+        appendix (str): String to append
+
+    Returns:
+        String in format: string|appendix
+    """
+
     if string == "":
-        string = apendix
+        string = appendix
     else:
-        string += "|" + apendix
+        string += "|" + appendix
 
     return string

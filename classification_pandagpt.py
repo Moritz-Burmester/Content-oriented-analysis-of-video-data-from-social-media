@@ -1,12 +1,16 @@
 import torch
 from PandaGPT.code.model.openllama import OpenLLAMAPEFTModel
 
+"""
+File used for the classifcation of videos with PandaGPT.
+"""
+
 def init_pandagpt():
     """
     Inits the model
 
     Return:
-        Parameters of the model
+        Parameters of the model  
     """
     
     args = {
@@ -36,8 +40,8 @@ def classify_pandagpt(sel_video, prompts, *args):
     Classifies a video for a selection of prompts
     
     Inputs:
-        sel_video: Path to the video that is classified
-        prompts: List of prompts used on that video
+        sel_video (str): Path to the video that is classified
+        prompts (list of str): List of prompts used on that video
         *args: Parameters created from init() for running the model
 
     Return:

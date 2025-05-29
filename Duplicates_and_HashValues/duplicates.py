@@ -1,12 +1,13 @@
 import pandas as pd
 
 """
-This scripts sorts the file filled from video_hashes.py and looks for duplicates and saves them in two seperate files.
-The one file contains only the duplicatse and the other the original and the duplicates
-Requirement: Csv File with id,hash1,hash2
+This script sorts the file filled from video_hashes.py and looks for duplicates and saves them in two seperate files.
+One file is only for duplicate video ids and othe other is a combined file where the duplicate video gets linked to its original.
 """
 
+# Input File
 video_hash_values_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/video_hash_values.csv"
+# Output Files
 duplicates_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates.csv"
 duplicates_to_originals_db = "/work/mburmest/bachelorarbeit/Duplicates_and_HashValues/duplicates_to_originals.csv"
 

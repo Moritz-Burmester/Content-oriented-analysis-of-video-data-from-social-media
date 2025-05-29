@@ -4,6 +4,10 @@ from Video_ChatGPT.video_chatgpt.eval.model_utils import initialize_model
 from Video_ChatGPT.video_chatgpt.constants import *
 from Video_ChatGPT.video_chatgpt.video_conversation import (default_conversation)
 
+"""
+File used for the classifcation of videos with Video-ChatGPT.
+"""
+
 def init_videochatgpt():
     """
     Inits the model
@@ -25,8 +29,8 @@ def classify_videochatgpt(sel_video, prompts, *args):
     Classifies a video for a selection of prompts
     
     Inputs:
-        sel_video: Path to the video that is classified
-        prompts: List of prompts used on that video
+        sel_video (str): Path to the video that is classified
+        prompts (list of str): List of prompts used on that video
         *args: Parameters created from init() for running the model
 
     Return:
