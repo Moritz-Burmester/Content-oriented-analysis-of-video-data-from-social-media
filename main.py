@@ -11,7 +11,9 @@ from datetime import datetime, timedelta
 """
 This file is used to classify based on the selected conda environment.
 The file allows to select different output paths.
-Beofre starting this file select an appropaite conda environment.
+Before starting this file select an appropiate conda environment.
+
+Changes might have to be made to the method classify_model or to the general code of this file.
 """
 
 # File paths
