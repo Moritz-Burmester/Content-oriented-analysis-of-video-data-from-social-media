@@ -13,7 +13,15 @@ This file is used to classify based on the selected conda environment.
 The file allows to select different output paths.
 Before starting this file select an appropiate conda environment.
 
-Changes might have to be made to the method classify_model or to the general code of this file.
+Changes might have to be made to the method classify_model or to the general code of this file to achieve the same results (e.g. limit each year to 12,000 videos)
+
+Methods exclusively for "normal" prompts:
+classify_model()
+format_result()
+
+Methods exclusively for "shuffled" prompts:
+classify_model_fixed_ids()
+format_result_shuffle()
 """
 
 # File paths
@@ -99,9 +107,11 @@ def main():
 
     # Starting to classify
     print("Starting to classify")
-    classify_model_fixed_ids(*model_params)
-    #classify_model(*model_params)
-    
+
+    # Pick a method
+    classify_model(*model_params)
+    #classify_model_fixed_ids(*model_params)
+   
     #Process and sort the dataframe
     for path in [SOLUTION_PATH_1, SOLUTION_PATH_2]:
         df = pd.read_csv(path)
@@ -696,7 +706,8 @@ def print_progress_status(processed_count, total_files, start_time):
 
 # Start of code
 if __name__ == "__main__":
-    
+    main()
+    """ Creating random_ids_by_year
     df = pd.read_csv("random_ids_by_year.csv")
 
     # Extract every 10th ID
@@ -709,3 +720,5 @@ if __name__ == "__main__":
 
     for video in df:
         print(id_to_path(video))
+    """
+    
