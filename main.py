@@ -11,7 +11,7 @@ from datetime import datetime, timedelta
 """
 This file is used to classify based on the selected conda environment.
 The file allows to select different output paths.
-Beofre starting this file select an appropaite conda environment
+Beofre starting this file select an appropaite conda environment.
 """
 
 # File paths
@@ -22,7 +22,7 @@ SOLUTION_PATH_1 = f"/work/mburmest/bachelorarbeit/Solution/{ENV_NAME}_solution_1
 SOLUTION_PATH_2 = f"/work/mburmest/bachelorarbeit/Solution/{ENV_NAME}_solution_2.csv"
 EXCEPTION_PATH = f"/work/mburmest/bachelorarbeit/{ENV_NAME}_exception.csv"
 
-# Prompts
+# Init. Prompts
 with open("Prompts/animals.txt", "r") as file:
     animals = file.read()
 
@@ -79,6 +79,10 @@ PROMPTS = {
 }
 
 def main():
+    """
+    Main method for classification
+    """
+
     print(f"Selected environment: {ENV_NAME}\n")
 
     # Create solution file.
@@ -102,15 +106,14 @@ def main():
         df = process_dataframe(df)
         df.to_csv(path, index=False)
 
-
 def select_model(ENV_NAME: str):
     """
     Depending on the selected environment inits the model and classify method
 
-    Args:
+    Parameters:
         ENV_NAME: Name of the environment
 
-    Return:
+    Returns:
         Parameters for the classification-method
     """
     global classify
@@ -136,15 +139,14 @@ def select_model(ENV_NAME: str):
         sys.exit(1)
     return None
 
-# Process DataFrame (sorting and dropping extra columns)
 def process_dataframe(df):
     """
-    Sorting a dataframe based on the video ids
+    Sorting a dataframe based on the date and video ids
 
-    Args:
+    Parameters:
         df: Pandas Dataframe to sort.
 
-    Return:
+    Returns:
         Sorted pandas df
     """
 
@@ -156,9 +158,10 @@ def classify_model(*args):
     """
     Method used for using the different prompts on given videos.
     First the main prompts are used. Then the x_kind prompts based on the answer from the first prompts. 
-    Everyanswer is formatted to fit in given categories.
+    Every answer is formatted to fit in given categories.
+    
 
-    Args:
+    Parameters:
         *args: All input paramter needed for the classification method
     
     """
@@ -193,7 +196,6 @@ def classify_model(*args):
             continue
         
         try:
-            # Clearing cuda cache and getting first results
             results = classify(video, first_prompts, *args)
 
             # Creating next round of results
@@ -246,22 +248,37 @@ def classify_model(*args):
         torch.cuda.empty_cache()
 
 def classify_model_fixed_ids(*args):
+    """
+    Method used for using the different prompts on given videos.
+    First the main prompts are used. Then the x_kind prompts based on the answer from the first prompts. 
+    Every answer is formatted to fit in given categories.
+
+    This method is used for a subset of the whole dataset that has the ids set before classifcation.
+    Also here the shuffled prompts are used.
+    
+    Parameters:
+        *args: All input paramter needed for the classification method
+    
+    """
+
+    # Creating the solution fil
     if not os.path.exists("/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1000.csv"):
         pd.DataFrame(columns=["id", "animals", "climateactions", "consequences", "setting", "type"]).to_csv("/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1000.csv", index=False)
 
-
+    # Getting the subset and first prompts
     df = pd.read_csv("/work/mburmest/bachelorarbeit/random_ids_by_year.csv")
     id_strings = df['id'].astype(str).tolist()
     videos = [id_to_path(s) for s in id_strings]
     first_prompts = [PROMPTS[key] for key in ["animals", "climateactions", "consequences"]]
 
+    # Classifying
     for video in videos:    
         torch.cuda.empty_cache()
         id_string = video.split("/")[-1].split(".")[0]
 
         results = classify(video, first_prompts, *args)
 
-            # Creating next round of results
+        # Creating next round of results
         second_prompts = []
         no_index = []
         failed_index = []
@@ -287,6 +304,7 @@ def classify_model_fixed_ids(*args):
      
         results = classify(video, second_prompts, *args)
         
+        # Formatting of the output
         results_1 = format_result_shuffle(results, second_prompts, no_index, failed_index)
         results_2 = word_search(results, second_prompts, no_index, failed_index)
 
@@ -315,6 +333,16 @@ def classify_model_fixed_ids(*args):
         write_to_csv("/work/mburmest/bachelorarbeit/Solution/pandagpt_solution_1000.csv", ["id", "animals", "climateactions", "consequences", "setting", "type"], [id_string] + results_final)
 
 def id_to_path(video_id):
+    """
+    Gets a video_id and constructs the path
+
+    Parameters:
+        video_id (str): String of video_id
+
+    Returns:
+        Path of video
+    """
+
     # Extract date part (after the last underscore)
     date_str = video_id.split('_')[-1]
     date_obj = datetime.strptime(date_str, '%Y-%m-%d')
@@ -331,7 +359,7 @@ def format_result(results: list, prompts: list, no_index: list, failed_index: li
     """ 
     Based on the input it returns the categories by comparing the input to the corresponding map
 
-    Args:
+    Parameters:
         result: A single result/answer string
         prompt: The prompt used to get the result
     
@@ -439,9 +467,10 @@ def format_result(results: list, prompts: list, no_index: list, failed_index: li
 
 def format_result_shuffle(results: list, prompts: list, no_index: list, failed_index: list):    
     """ 
-    Based on the input it returns the categories by comparing the input to the corresponding map
+    Based on the input it returns the categories by comparing the input to the corresponding map.
+    This method is used for the shuffled prompts.
 
-    Args:
+    Parameters:
         result: A single result/answer string
         prompt: The prompt used to get the result
     
@@ -549,9 +578,9 @@ def format_result_shuffle(results: list, prompts: list, no_index: list, failed_i
 
 def find_words(text, words_mapping):
     """
-    Method to find words and based on what words are found returning a sting of categories
+    Method to find words and based on what words are found returning a string of categories
 
-    Args:
+    Parameters:
         text: String of the text to look at
         words_mapping: wordbank with search and return values
 
@@ -571,7 +600,18 @@ def find_words(text, words_mapping):
     return "|".join(matches) if matches else "NO CLASS FOUND"
 
 def word_search(results: list, prompts: list, no_index: list, failed_index: list):
+    """
+    Searches for keywords in the results and returns a solution list.
+    Results and Prompts need to be the same size. Which prompt created which results.
     
+    Parameters:
+        results (list of str): List of results created by the model.
+        prompts (list of str): List of prompts used for creating the results.
+        no_index (list of int): Position in the solution list for "No"
+        failed_index (list of int): Position in the solution list for "Failed Yes/No"
+    """
+
+
     solution = []
     for result, prompt in zip(results, prompts):
         result_clean = result.lower().strip()
@@ -608,6 +648,7 @@ def word_search(results: list, prompts: list, no_index: list, failed_index: list
         
         solution.append("|".join(found_words) if found_words else "NO CLASS FOUND")
 
+    # Insertion of No and Failed Yes/No
     for x in no_index:
         solution.insert(x, "No")  
     
@@ -620,7 +661,7 @@ def write_to_csv(file_path, columns, data):
     """
     Appends a single row to a CSV file
 
-    Args: 
+    Parameters: 
         file_path:    File to append to.
         columns:      Columns to append.
         data:         data the columns are appended with. data[0] = id
@@ -639,7 +680,7 @@ def print_progress_status(processed_count, total_files, start_time):
     """
     Prints progress updates
 
-    Args:
+    Parameters:
         processed_count: Files processed
         total_files: Total number of files
         start_time: Time when processing started
@@ -651,8 +692,9 @@ def print_progress_status(processed_count, total_files, start_time):
           f"Remaining: {timedelta(seconds=int(remaining_time))} | "
           f"Total estimate: {timedelta(seconds=int(elapsed_time + remaining_time))}")
 
+# Start of code
 if __name__ == "__main__":
-    #main()
+    
     df = pd.read_csv("random_ids_by_year.csv")
 
     # Extract every 10th ID
